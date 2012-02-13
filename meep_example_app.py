@@ -157,8 +157,6 @@ class MeepExampleApp(object):
         
         new_message = meeplib.Message(msgtitle, message, user)
         new_topic = meeplib.Topic(title, new_message, user)
-        
-        meeplib.save_data()
 
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/list_topics'))
@@ -182,8 +180,6 @@ class MeepExampleApp(object):
         user = meeplib.get_user(username)
         
         new_message = meeplib.Message(title, message, user)
-        
-        meeplib.save_data()
 
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/list'))
@@ -199,8 +195,6 @@ class MeepExampleApp(object):
         message = meeplib.get_message(id)
         
         meeplib.delete_message(message)
-        
-        meeplib.save_data()
         
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/list'))
@@ -218,8 +212,6 @@ class MeepExampleApp(object):
         topic = meeplib.get_topic(topic_id)
         
         topic.delete_message_from_topic(message)
-        
-        meeplib.save_data()
         
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/topics/view?id=%d' % (topic_id,)))
@@ -282,8 +274,6 @@ class MeepExampleApp(object):
         
         topic.add_message(new_message)
         
-        meeplib.save_data()
-        
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/topics/view?id=%d' % (topic.id)))
         start_response("302 Found", headers)
@@ -296,8 +286,6 @@ class MeepExampleApp(object):
         topicId = form['tid'].value
         topic = meeplib.get_topic(int(topicId))
         meeplib.delete_topic(topic)
-        
-        meeplib.save_data()
         
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/list_topics'))

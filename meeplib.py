@@ -70,8 +70,7 @@ def _reset():
     _user_ids = {}
     _topics = {}
     
-def save_data():
-
+def _save_data():
     obj = (_users, _user_ids, _topics, _messages)
     
     filename = 'save.meep.pickle'
@@ -121,6 +120,7 @@ class Message(object):
         self.author = author
 
         self._save_message()
+        _save_data()
 
     def _save_message(self):
         self.id = _get_next_message_id()
@@ -137,6 +137,8 @@ def get_message(id):
 def delete_message(msg):
     assert isinstance(msg, Message)
     del _messages[msg.id]
+	
+    _save_data()
 
 ###
 
@@ -157,6 +159,8 @@ class Topic(object):
         self.author = author
         
         self._save_topic()
+		
+        _save_data()
         
     def _save_topic(self):
         self.id = _get_next_topic_id()
@@ -191,6 +195,8 @@ def get_topic(id):
         
 def delete_topic(topic):
     del _topics[topic.id]
+	
+    _save_data()
 ###
 
 class User(object):
@@ -199,6 +205,8 @@ class User(object):
         self.password = password
 
         self._save_user()
+		
+        _save_data()
 
     def _save_user(self):
         self.id = _get_next_user_id()
@@ -206,6 +214,7 @@ class User(object):
         # register new user ID with the users list:
         _user_ids[self.id] = self
         _users[self.username] = self
+		
 
 def get_user(username):
     return _users.get(username)         # return None if no such user
@@ -216,3 +225,5 @@ def get_all_users():
 def delete_user(user):
     del _users[user.username]
     del _user_ids[user.id]
+	
+    _save_data()
