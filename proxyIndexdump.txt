@@ -1,0 +1,17 @@
+Any clients will be served...
+Serving HTTP on 0.0.0.0 port 8001 ...
+	connect to 192.168.1.99:8000
+Connecting to: 192.168.1.99:8000 <socket._socketobject object at 0xb71b3fb4>
+Sending: GET /  
+Sending header: ('accept-language', 'en-us,en;q=0.5')
+Sending header: ('connection', 'close')
+Sending header: ('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
+Sending header: ('user-agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:10.0) Gecko/20100101 Firefox/10.0')
+Sending header: ('host', '192.168.1.99:8000')
+Sending header: ('referer', 'http://192.168.1.99:8000/')
+Sending header: ('cache-control', 'max-age=0')
+Sending header: ('accept-encoding', 'gzip, deflate')
+Sending: ('HTTP/1.0 200 OK\r\n',)
+Sending: ('Date: Tue, 14 Feb 2012 08:33:36 GMT\r\nServer: WSGIServer/0.1 Python/2.7.1+\r\nContent-type: text/html\r\nContent-Length: 182\r\n\r\n',)
+Sending: ("You are not logged in.\n                <p><a href='/m/add_topic'>Add a topic</a></p>\n                <p><a href='/login'>Log in</a></p><p><a href='/m/list_topics'>Show topics</a></p>",)
+	bye
