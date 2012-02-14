@@ -13,39 +13,104 @@ class MeepExampleApp(object):
     WSGI app object.
     """
     def index(self, environ, start_response):
-        start_response("200 OK", [('Content-type', 'text/html')])
+    
+        cookie = environ.get('HTTP_COOKIE', '')
 
-        username = 'test'
+        username = meepcookie.load_username(cookie)
+        
+        print username
+        
+        idxHTML = ""
+        
+        if username == "":
+            idxHTML = """You are not logged in.
+                <p><a href='/m/add_topic'>Add a topic</a></p>
+                <p><a href='/login'>Log in</a></p>
+                <p><a href='/m/list_topics'>Show topics</a></p>"""
+        else:
+            idxHTML = ["""You are logged in as: %s.
+                <p><a href='/m/add_topic'>Add a topic</a></p>
+                <p><a href='/logout'>Log out</a>
+                <p><a href='/m/list_topics'>Show topics</a></p>"""
+                % (username,)]
+                
+        start_response("200 OK", [('Content-type', 'text/html')])
+        return idxHTML
 
         #return ["""You are logged in as: %s.<p><a href='/m/add'>Add a message</a><p><a href='/login'>Log in</a><p><a href='/logout'>Log out</a><p><a href='/m/list'>Show messages</a>""" % (username,)]
-        return ["""You are logged in as: %s.<p><a href='/m/add_topic'>Add a topic</a><p><a href='/login'>Log in</a><p><a href='/logout'>Log out</a><p><a href='/m/list_topics'>Show topics</a>""" % (username,)]
-
+        
     def login(self, environ, start_response):
+        
+        qString = cgi.parse_qs(environ['QUERY_STRING'])
+        loginfailed = qString.get('loginfailed', [''])
+        
+        loginform = ""
+        
+        #if loginfailed:
+        #    loginform = """<p style="font-weight: bold; color: #F00;">Incorrect username or password!</p>"""
+        
+        loginform = loginform + """<form action="/do_login" method='POST'>
+            Username: <input type='text' name='username'><br>
+            Password: <input type='password' name='password'>
+            <input type='submit' value='Login'>
+        </form>"""
+        
+        headers = [('Content-type', 'text/html')]
+        start_response("200 OK", headers)
+        
+        return loginform
+
+    def do_login(self, environ, start_response):
         # hard code the username for now; this should come from Web input!
-        username = 'test'
+        form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
+        username = form['username'].value
+        password = form['password'].value
 
         # retrieve user
         user = meeplib.get_user(username)
-
-        # set content-type
-        headers = [('Content-type', 'text/html')]
-
-        cookie_name, cookie_val = \
-                     meepcookie.make_set_cookie_header('username',
-                                                       user.username)
-        headers.append((cookie_name, cookie_val))
         
-        # send back a redirect to '/'
         k = 'Location'
-        v = '/'
+        v = ''
+        returnMsg = ""
+        
+        headers = [('Content-type', 'text/html')]
+        
+        if user is not None:
+            if password == user.password:
+            # set content-type
+
+                cookie_name, cookie_val = \
+                            meepcookie.make_set_cookie_header('username',
+                                                            user.username)
+                headers.append((cookie_name, cookie_val))
+            
+                # send back a redirect to '/'
+                
+                v = '/'
+                
+                returnMsg = "Valid password"
+            else:
+                v = '/login?loginfailed=true'
+                
+                returnMsg = "Invalid password"
+        else:
+            v = '/login?loginfailed=true'
+          
+            returnMsg = "Invalid username"
+            
         headers.append((k, v))
         start_response('302 Found', headers)
         
-        return "no such content"
+        return returnMsg  
 
     def logout(self, environ, start_response):
         # does nothing
+        cookie = environ.get('HTTP_COOKIE', '')
+
+        cookie_name, cookie_val = meepcookie.clear_username(cookie)
+        
         headers = [('Content-type', 'text/html')]
+        headers.append((cookie_name, cookie_val))
 
         # send back a redirect to '/'
         k = 'Location'
@@ -152,8 +217,13 @@ class MeepExampleApp(object):
         msgtitle = form['msgtitle'].value
         message = form['message'].value
         
-        username = 'test'
-        user = meeplib.get_user(username)
+        cookie = environ.get('HTTP_COOKIE', '')
+        username = meepcookie.load_username(cookie)
+        
+        if username == "":
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/login'))
+            start_response("302 Found", headers)
         
         new_message = meeplib.Message(msgtitle, message, user)
         new_topic = meeplib.Topic(title, new_message, user)
@@ -176,15 +246,23 @@ class MeepExampleApp(object):
         title = form['title'].value
         message = form['message'].value
         
-        username = 'test'
+        cookie = environ.get('HTTP_COOKIE', '')
+
+        username = meepcookie.load_username(cookie)
         user = meeplib.get_user(username)
         
-        new_message = meeplib.Message(title, message, user)
-
-        headers = [('Content-type', 'text/html')]
-        headers.append(('Location', '/m/list'))
-        start_response("302 Found", headers)
-        return ["message added"]
+        if user is not None:
+            new_message = meeplib.Message(title, message, user)
+    
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/m/list'))
+            start_response("302 Found", headers)
+            return ["message added"]
+        else:
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/login'))
+            start_response("302 Found", headers)
+            return ["session expired"]
         
     def delete_message(self, environ, start_response):
         print environ['wsgi.input']
@@ -267,17 +345,25 @@ class MeepExampleApp(object):
         title = form['title'].value
         message = form['message'].value
         
-        username = 'test'
+        cookie = environ.get('HTTP_COOKIE', '')
+
+        username = meepcookie.load_username(cookie)
         user = meeplib.get_user(username)
         
-        new_message = meeplib.Message(title, message, user)
-        
-        topic.add_message(new_message)
-        
-        headers = [('Content-type', 'text/html')]
-        headers.append(('Location', '/m/topics/view?id=%d' % (topic.id)))
-        start_response("302 Found", headers)
-        return ["message added to topic"]
+        if user is not None:
+            new_message = meeplib.Message(title, message, user)
+            
+            topic.add_message(new_message)
+            
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/m/topics/view?id=%d' % (topic.id)))
+            start_response("302 Found", headers)
+            return ["message added to topic"]
+        else:
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/login'))
+            start_response("302 Found", headers)
+            return ["session expired"]
         
     def delete_topic_action(self, environ, start_response):
         print environ['wsgi.input']
@@ -296,6 +382,7 @@ class MeepExampleApp(object):
         # store url/function matches in call_dict
         call_dict = { '/': self.index,
                       '/login': self.login,
+                      '/do_login': self.do_login,
                       '/logout': self.logout,
                       '/m/list': self.list_messages,
                       '/m/list_topics': self.list_topics,

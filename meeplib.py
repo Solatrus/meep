@@ -99,8 +99,8 @@ def load_data():
         fp.close()
         
     except IOError:
-        print 'Pickle file not found, initializing default data.'
-        u = User('test', 'foo')
+        print 'Pickle file not found, initializing to default state...'
+        u = User('admin', 'admin')
         t = Topic('First Topic', Message('my title', 'This is my message!', u), u)
 
 ###
