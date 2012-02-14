@@ -1,5 +1,6 @@
 import unittest
 import meep_example_app
+import meepcookie
 
 class TestApp(unittest.TestCase):
     def setUp(self):
@@ -47,6 +48,24 @@ class TestApp(unittest.TestCase):
         environ['PATH_INFO'] = '/m/add_topic'
         
         def fake_start_response(status, headers):
+            assert status == '200 OK'
+            assert ('Content-type', 'text/html') in headers
+            
+        data = self.app(environ, fake_start_response)
+        assert 'Add a new topic' in data
+       
+    # I set up adding users so that it's required to be logged in as the admin user account.
+    # This was unnecessary to do, but I felt like doing it anyway.
+    def test_add_user(self):
+        environ = {}
+        environ['PATH_INFO'] = '/add_user'
+        
+        cookie_name, cookie_val = \
+                    meepcookie.make_set_cookie_header('username',
+                                                    'admin')
+        
+        def fake_start_response(status, headers):
+            headers.append((cookie_name, cookie_val))
             assert status == '200 OK'
             assert ('Content-type', 'text/html') in headers
             
