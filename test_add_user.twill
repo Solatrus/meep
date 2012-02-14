@@ -1,5 +1,5 @@
 go http://localhost:8000/
-follow "Login"
+follow "Log in"
 
 fv 1 username 'admin'
 fv 1 password 'admin'
