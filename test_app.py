@@ -52,6 +52,17 @@ class TestApp(unittest.TestCase):
             
         data = self.app(environ, fake_start_response)
         assert 'Add a new topic' in data
+        
+    def test_login(self):
+        environ = {}
+        environ['PATH_INFO'] = '/login'
+        
+        def fake_start_response(status, headers):
+            assert status == '200 OK'
+            assert ('Content-type', 'text/html') in headers
+            
+        assert 'Username' in data
+        data = self.app(environ, fake_start_response)
 
     def tearDown(self):
         pass

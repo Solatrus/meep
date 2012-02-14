@@ -80,6 +80,7 @@ def _save_data():
 
 def load_data():
     try:
+        _reset()
         fp = open('save.meep.pickle')
         obj = pickle.load(fp)
         (users, user_ids, topics, messages) = obj
