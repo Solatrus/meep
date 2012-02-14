@@ -1,5 +1,8 @@
 Any clients will be served...
 Serving HTTP on 0.0.0.0 port 8001 ...
+
+############## Going to index before logging in ##############
+
 	connect to 192.168.1.99:8000
 Connecting to: 192.168.1.99:8000 <socket._socketobject object at 0xb71b3fb4>
 Sending: GET /  

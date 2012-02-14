@@ -1,5 +1,8 @@
 Any clients will be served...
 Serving HTTP on 0.0.0.0 port 8001 ...
+
+############## Connecting to viewing a topic (the add message form is on this page) ##############
+
 	connect to 192.168.1.99:8000
 Connecting to: 192.168.1.99:8000 <socket._socketobject object at 0xb72effb4>
 Sending: GET /m/topics/view  id=0
@@ -16,6 +19,8 @@ Sending: ('HTTP/1.0 200 OK\r\n',)
 Sending: ('Date: Tue, 14 Feb 2012 08:39:07 GMT\r\nServer: WSGIServer/0.1 Python/2.7.1+\r\nContent-type: text/html\r\nContent-Length: 1126\r\n\r\n',)
 Sending: ("First Topic<br><br>id: 0<p>title: my title<p>message: This is my message!<p>author: admin<p>\n            <form name='delete_0' action='../delete_message_topic' method='POST'>\n                <input type='hidden' name='id' value='0' />\n                <input type='hidden' name='topic_id' value='0' />\n                <input type='submit' value='Delete Message' />\n            </form>\n            <form name='reply_0' action='../reply_topic' method='POST'>\n                <input type='hidden' name='id' value='0' />\n                <input type='hidden' name='topic_id' value='0' />\n                <input type='submit' value='Reply to Message' />\n            </form><hr><form action='../add_message_topic_action' name='add_message' method='POST'>Title: <input type='text' name='title'><br>Message:<input type='text' name='message'><br><input type='number' hidden='true' name='topicid' value=0><input type='submit'></form><br><form action='../delete_topic_action' name='delete_topic' method='POST'><input type='number' hidden='true' name='tid' value=0><input type='submit' value='Delete topic'></form><a href='../../'>index</a>",)
 	bye
+    
+############## Posting new message for topic 0 ##############
 	connect to 192.168.1.99:8000
 Connecting to: 192.168.1.99:8000 <socket._socketobject object at 0xb72f609c>
 Sending: POST /m/add_message_topic_action  
