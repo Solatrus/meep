@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+{% if username == "" %}
+You are not logged in.
+{% else %}
+You are logged in as user: {{ username }}.
+{% endif %}
+<p>
+
+<a href='/m/add'>Add a message</a>
+
+<p>
+
+{% if username == "" %}
+<a href='/login'>Log in</a>
+
+<p>
+
+{% else %}
+<a href='/logout'>Log out</a>
+
+<p>
+{% endif %}
+
+<a href='/m/list'>Show messages</a>
+
+<br />
+
+{% if username == "admin" %}
+<p style="font-weight: bold;">Admin actions:</p>
+<p><a href='/add_user'>Add a new user</a></p>
+{% endif %}
+
+{% endblock body %}

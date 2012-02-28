@@ -15,6 +15,8 @@ __version__ = "0.2.1"
 
 import BaseHTTPServer, select, socket, SocketServer, urlparse
 
+message_num = 0
+
 class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     __base = BaseHTTPServer.BaseHTTPRequestHandler
     __base_handle = __base.handle
@@ -61,6 +63,12 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.connection.close()
 
     def do_GET(self):
+        global message_num
+	n = message_num
+        message_num += 1
+        ifp = open('msg%d.in.txt' % n, 'w')
+        ofp = open('msg%d.out.txt' % n, 'w')
+
         (scm, netloc, path, params, query, fragment) = urlparse.urlparse(
             self.path, 'http')
         if scm != 'http' or fragment or not netloc:
@@ -71,6 +79,10 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             if self._connect_to(netloc, soc):
 		print 'Connecting to:', netloc, soc
                 self.log_request()
+                ifp.write("%s %s %s\r\n" % (
+                    self.command,
+                    urlparse.urlunparse(('', '', path, params, query, '')),
+                    self.request_version))
                 soc.send("%s %s %s\r\n" % (
                     self.command,
                     urlparse.urlunparse(('', '', path, params, query, '')),
@@ -82,14 +94,18 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 for key_val in self.headers.items():
 		    print 'Sending header:', key_val
                     soc.send("%s: %s\r\n" % key_val)
-                soc.send("\r\n")
-                self._read_write(soc)
+                    ifp.write("%s: %s\r\n" % key_val)
+                ifp.write("\r\n")
+		soc.send("\r\n")
+                self._read_write(soc, fp=ofp)
         finally:
             print "\t" "bye"
             soc.close()
             self.connection.close()
+	    ifp.close()
+	    ofp.close()
 
-    def _read_write(self, soc, max_idling=20):
+    def _read_write(self, soc, max_idling=20, fp=None):
         iw = [self.connection, soc]
         ow = []
         count = 0
@@ -107,6 +123,8 @@ class ProxyHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                     if data:
 			print 'Sending:', (data,)
                         out.send(data)
+                        if fp:
+                           fp.write(data)
                         count = 0
             else:
                 print "\t" "idle", count
