@@ -104,13 +104,10 @@ class MeepExampleApp(object):
         return "no such content"
         
     def add_user(self, environ, start_response):
-        cookie = environ.get('HTTP_COOKIE', '')
-        
-        print "-|-|-\n" + str(cookie) + "\n-|-|-\n"
+        cookie = environ.get('HTTP_COOKIE')
         
         username = meepcookie.load_username(cookie)
-        
-        print "************\n" + username + "\n************\n"
+
         
         headers = [('Content-type', 'text/html')]
         if username == 'admin':
