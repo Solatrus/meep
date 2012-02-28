@@ -48,9 +48,16 @@ class MeepExampleApp(object):
             password = form['password'].value
         except:
             password = None
+            
+        print username
+        print ', '
+        print password
+        print '\n'
 
         # retrieve user
         user = meeplib.get_user(username)
+        
+        print user.username
         
         k = 'Location'
         v = ''
@@ -61,6 +68,10 @@ class MeepExampleApp(object):
         headers = [('Content-type', 'text/html')]
         
         if user is not None and password is not None:
+            print user.username
+            print ', '
+            print user.password
+            print '\n'
             if password == user.password:
             # set content-type
 
@@ -73,14 +84,15 @@ class MeepExampleApp(object):
                 
                 v = '/'
                 
+                loginSuccess = True
+                
                 headers.append((k, v))
                 
                 start_response('302 Found', headers)
                 return "Valid password"
             
-        elif loginFailed:
-
-        
+            
+        if not loginSuccess:
             headers = [('Content-type', 'text/html')]
             start_response("200 OK", headers)
             
