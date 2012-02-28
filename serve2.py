@@ -42,17 +42,17 @@ def handle_connection(sock):
                     
             html = app(environ, fake_start_response)
 
-            output += _status + '\n'
+            output += _status + '\n\r'
             responsehdrs = _headers[0]
 
-            output += "Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\n"
-            output += "Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\n"
+            output += "Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\n\r"
+            output += "Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\n\r"
 
-            output += responsehdrs[0] + ": " + responsehdrs[1] + "\n"
+            output += responsehdrs[0] + ": " + responsehdrs[1] + "\n\r"
 
-            output += "\n" + str(html[0]).strip('\n') + "\n"
-            
+            output += "\n\r" + str(html[0]).strip('\n').strip('\r') + "\n\r"
             print output
+            sock.send(output)
 
             if '.\r\n' in data:
                 sock.close()
