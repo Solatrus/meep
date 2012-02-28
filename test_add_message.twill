@@ -1,10 +1,11 @@
 go http://localhost:8000/
-follow "Add a message"
+follow "Show topics"
 
-fv 1 title 'test title FOO'
-fv 1 message 'this is my message'
+follow "First Topic"
+
+fv 'add_message' title 'Test title twill'
+fv 'add_message' message 'Blah blah blah'
+
 submit
 
-url /m/list
-find 'FOO'
-
+url /m/topics/view
