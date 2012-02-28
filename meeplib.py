@@ -73,7 +73,9 @@ def _reset():
 def _save_data():
     obj = (_users, _user_ids, _topics, _messages)
     
-    filename = 'save.meep.pickle'
+    #print "Saving pickle db...\n\n"
+    
+    filename = './save.meep.pickle'
     fp = open(filename, 'w')
     pickle.dump(obj, fp)
     fp.close()
@@ -81,7 +83,7 @@ def _save_data():
 def load_data():
     try:
         _reset()
-        fp = open('save.meep.pickle')
+        fp = open('./save.meep.pickle')
         obj = pickle.load(fp)
         (users, user_ids, topics, messages) = obj
     
@@ -98,6 +100,8 @@ def load_data():
             _messages[m] = messages[m]
         
         fp.close()
+        
+        _save_data()
         
     except IOError:
         print 'Pickle file not found, initializing to default state...'

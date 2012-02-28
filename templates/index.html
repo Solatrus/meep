@@ -2,29 +2,25 @@
 
 {% block body %}
 
+<p>
 {% if username == "" %}
 You are not logged in.
 {% else %}
 You are logged in as user: {{ username }}.
 {% endif %}
-<p>
-
-<!--<a href='/m/add'>Add a message</a>-->
+</p>
 
 <p>
-
 {% if username == "" %}
 <a href='/login'>Log in</a>
-
-<p>
-
 {% else %}
 <a href='/logout'>Log out</a>
-
-<p>
 {% endif %}
+</p>
 
-<a href='/m/list_topics'>Show topics</a>
+<p><a href='/m/add_topic'>Add a topic</a></p>
+
+<p><a href='/m/list_topics'>Show topics</a></p>
 
 <br />
 

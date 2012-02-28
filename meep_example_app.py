@@ -31,10 +31,7 @@ class MeepExampleApp(object):
         
         return [ render_page('index.html', username=username) ]
         
-    def login(self, environ, start_response):
-        
-        qString = cgi.parse_qs(environ['QUERY_STRING'])
-        
+    def login(self, environ, start_response): 
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
         
@@ -49,15 +46,9 @@ class MeepExampleApp(object):
         except:
             password = None
             
-        print username
-        print ', '
-        print password
-        print '\n'
-
+        
         # retrieve user
         user = meeplib.get_user(username)
-        
-        print user.username
         
         k = 'Location'
         v = ''
@@ -68,10 +59,6 @@ class MeepExampleApp(object):
         headers = [('Content-type', 'text/html')]
         
         if user is not None and password is not None:
-            print user.username
-            print ', '
-            print user.password
-            print '\n'
             if password == user.password:
             # set content-type
 
@@ -119,7 +106,11 @@ class MeepExampleApp(object):
     def add_user(self, environ, start_response):
         cookie = environ.get('HTTP_COOKIE', '')
         
+        print "-|-|-\n" + str(cookie) + "\n-|-|-\n"
+        
         username = meepcookie.load_username(cookie)
+        
+        print "************\n" + username + "\n************\n"
         
         headers = [('Content-type', 'text/html')]
         if username == 'admin':

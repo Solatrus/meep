@@ -6,8 +6,7 @@ import nose
 class TestApp(unittest.TestCase):
     def setUp(self):
         meep_example_app.initialize()
-        app = meep_example_app.MeepExampleApp()
-        self.app = app
+        self.app = meep_example_app.MeepExampleApp()
 
     def test_index(self):
         environ = {}                    # make a fake dict
@@ -17,6 +16,7 @@ class TestApp(unittest.TestCase):
             nose.tools.assert_equal(status, '200 OK')
             nose.tools.assert_equal((('Content-type', 'text/html') in headers), True)
 
+        data = self.app(environ, fake_start_response)
         nose.tools.assert_equal(('Add a topic' in data[0]), True)
         nose.tools.assert_equal(('Show topics' in data[0]), True)
     
@@ -52,7 +52,7 @@ class TestApp(unittest.TestCase):
             nose.tools.assert_equal((('Content-type', 'text/html') in headers), True)
             
         data = self.app(environ, fake_start_response)
-        nose.tools.assert_equal(('Add a new topic' in data[0]), True)
+        nose.tools.assert_equal(('Add a new topic' in data), True)
        
 
     # I set up adding users so that it's required to be logged in as the admin user account.
@@ -81,8 +81,8 @@ class TestApp(unittest.TestCase):
             nose.tools.assert_equal(status, '200 OK')
             nose.tools.assert_equal((('Content-type', 'text/html') in headers), True)
             
-                nose.tools.assert_equal(('Username' in data), True)
         data = self.app(environ, fake_start_response)
+        nose.tools.assert_equal(('Username' in data[0]), True)
 
     def tearDown(self):
         pass
