@@ -1,5 +1,13 @@
 import cgi, meep_example_app, time, meepcookie, sys, socket
 
+class ResponseObj:
+    def __init__(self):
+        self.status_code = None
+        self.headers = None
+    def start_response(self, status, headers):
+        self.status_code = status
+        self.headers = headers
+
 def handle_connection(sock):
     while 1:
         data = None
@@ -42,17 +50,13 @@ def handle_connection(sock):
                 elif linedata[0] == "cookie":
                     environ['HTTP_COOKIE'] = linedata[1]
                     
-            reshdrs = None
-            statcode = None
+            
+            response = ResponseObj()
                     
-            def fake_start_response(status, headers):
-                statcode = status
-                reshdrs = headers
-                    
-            html = app(environ, fake_start_response)
+            html = app(environ, response.start_response)
 
-            output += statcode + '\r\n'
-            responsehdrs = reshdrs[0]
+            output += response.status_code + '\r\n'
+            responsehdrs = response.headers[0]
 
             output += "Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\r\n"
             output += "Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\r\n"
@@ -61,9 +65,10 @@ def handle_connection(sock):
 
             output += "\r\n" + str(html[0]).strip('\n').strip('\r') + "\r\n"
             print output
+            
             sock.send(output)
 
-            if '.\r\n' in data:
+            if data[len(data)-4:] == "\r\n\r\n":
                 sock.close()
                 break
         except socket.error:
