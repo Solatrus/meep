@@ -1,18 +1,20 @@
 import cgi, meep_example_app, time, meepcookie, sys, socket
 
-global _status
-global _headers
-
-def fake_start_response(status, headers):
-    global _status
-    _status = status
-    global _headers
-    _headers = headers
-
 def handle_connection(sock):
     while 1:
+        data = None
         try:
-            data = sock.recv(4096)
+            while 1:
+                incoming = sock.recv(1)
+                if (data == None):
+                    data = incoming
+                else:
+                    data = data + incoming
+                    
+                
+                if data[len(data)-4:] == "\r\n\r\n":
+                    break
+
             if not data:
                 break
 
@@ -23,7 +25,7 @@ def handle_connection(sock):
             output = ""
             environ = {}
             
-            lines = data.split('\n\r')
+            lines = data.split('\r\n')
 
             protocol = lines[0].split(' ')
 
@@ -40,17 +42,24 @@ def handle_connection(sock):
                 elif linedata[0] == "cookie":
                     environ['HTTP_COOKIE'] = linedata[1]
                     
+            reshdrs = None
+            statcode = None
+                    
+            def fake_start_response(status, headers):
+                statcode = status
+                reshdrs = headers
+                    
             html = app(environ, fake_start_response)
 
-            output += _status + '\n\r'
-            responsehdrs = _headers[0]
+            output += statcode + '\r\n'
+            responsehdrs = reshdrs[0]
 
-            output += "Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\n\r"
-            output += "Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\n\r"
+            output += "Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\r\n"
+            output += "Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\r\n"
 
-            output += responsehdrs[0] + ": " + responsehdrs[1] + "\n\r"
+            output += responsehdrs[0] + ": " + responsehdrs[1] + "\r\n"
 
-            output += "\n\r" + str(html[0]).strip('\n').strip('\r') + "\n\r"
+            output += "\r\n" + str(html[0]).strip('\n').strip('\r') + "\r\n"
             print output
             sock.send(output)
 
