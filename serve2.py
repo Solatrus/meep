@@ -15,7 +15,7 @@ def handle_connection(sock):
         headerdone = False
         try:
             while 1:
-                incoming = sock.recv(1)
+                incoming = sock.recv(2)
 
                 if (data == None):
                     data = incoming
@@ -28,7 +28,7 @@ def handle_connection(sock):
             if not data:
                 break
 
-            print 'Data recieved from: ', (sock.getsockname(),), '\n', (data,), '\n\n', 'Response:\n'
+            print 'Data recieved from: ', sock.getsockname(), '\n'
             
             meep_example_app.initialize()
             app = meep_example_app.MeepExampleApp()
@@ -36,6 +36,7 @@ def handle_connection(sock):
             environ = {}
             
             lines = data.split('\r\n')
+            
 
             protocol = lines[0].split(' ')
 
@@ -47,14 +48,39 @@ def handle_connection(sock):
             environ['SERVER_PROTOCOL'] = protocol[2]
 
             output += protocol[2].strip() + " "
+            
+            post = ''
 
             for line in lines:
+                print line
+                line = line.lower()
                 linedata = str(line).split(": ")
                 if linedata[0] == "referer":
                     environ['SCRIPT_NAME'] = linedata[1]
                 elif linedata[0] == "cookie":
                     environ['HTTP_COOKIE'] = linedata[1]
+                elif linedata[0] == "content-length":
+                    if int(linedata[1]) > 0:
+                        print "Input found"
+                        while 1:
+                            incoming = sock.recv(2)
+                            if not incoming:
+                                break
+                                
+                            post = post + incoming
+                            
+                            print post
+                                
+                            if len(incoming) < 2:
+                                break
+                        
+                        environ['wsgi.input'] = post
+            
+            print post
                     
+            print "Response:\n"
+            
+            print environ
             
             response = ResponseObj()
                     
