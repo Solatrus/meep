@@ -146,8 +146,6 @@ class MeepExampleApp(object):
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
         
-        #sleep(30)
-        
         return [ render_page('list_topics.html', topics=topics) ]
         
     def view_topic(self, environ, start_response):
@@ -158,8 +156,6 @@ class MeepExampleApp(object):
             
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
-        
-        sleep(5)
         
         return [ render_page('view_topic.html', messages=messages, topic=topic) ]
     

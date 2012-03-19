@@ -85,26 +85,12 @@ if __name__ == '__main__':
     sock = socket.socket()
     sock.bind( (interface, port) )
     sock.listen(5)
-    
-    sock.setblocking(0)
 
-    connections = []
     while 1:
-        try:
-            print 'Waiting for HTTP Request...'
-            (client_sock, client_address) = sock.accept()
-            print 'Got connection', client_address
-            client_sock.setblocking(0)
-            connections.append((client_sock, client_address))
-        except socket.error:
-            pass
-            
-        open_connections = []
-        for (client_sock, client_address) in connections:
-            print 'Processing response for', client_address
-            do_connection = handle_connection(client_sock)
-            
-            if not do_connection:
-                open_connections.append((client_sock, client_address))
-                
-        connections = open_connections
+        print 'Waiting for HTTP Request...'
+        (client_sock, client_address) = sock.accept()
+        print 'Got connection', client_address
+        t = threading.Thread(target=handle_connection, args=(client_sock,))
+
+        print 'Starting thread...'
+        t.start()
