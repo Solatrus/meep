@@ -1,4 +1,4 @@
-import cgi, meep_example_app, time, meepcookie, sys, socket, thread
+import cgi, meep_example_app, time, meepcookie, sys, socket, threading
 
 class ResponseObj:
     def __init__(self):
@@ -7,91 +7,13 @@ class ResponseObj:
     def start_response(self, status, headers):
         self.status_code = status
         self.headers = headers
-        
-def broadcast_data(sock, message):
-    global CONNECTIONS
-    
-    for socket in CONNECTIONS:
-        if socket != sock:
-            socket.send(message)
-            
-def accept_connetion():
-    global CONNECTIONS, BUFFER
-    
-    try:
-        while 1:
-            threadlock.acquire()
-            
-            try:
-                sockfd, addr = server_socket.accept()
-                sockfd.setblocking(0)
-                CONNECTIONS.append(sockfd)
-                print "Client (%s, %s) connected" % addr
-                broadcast_data(sockfd, "Client (%s, %s) connected" % addr)
-                
-            except:
-                pass
-                
-            threadlock.release()
-            
-    except:
-        pass
-        
-def process_connection():
-    global CONNECTIONS, BUFFER
-    try:
-        while 1:
-            for sock in CONNECTIONS:
-                threadlock.acquire()
 
-                try:
-
-                    data = sock.recv(BUFFER)
-                    if data:
-                        # The client sends some valid data, process it
-                        if data == "q" or data == "Q":
-                            broadcast_data(sock, "Client (%s, %s) quits" % sock.getpeername())
-                            print "Client (%s, %s) quits" % sock.getpeername()
-                            sock.close()
-                            CONNECTIONS.remove(sock)
-                        else:
-                            broadcast_data(sock, data)
-                except:
-                    #Exception thrown, get the error code and do cleanup actions
-                    socket_errorcode =  sys.exc_value[0]
-                    if socket_errorcode == 10054:
-
-                        # Connection reset by peer exception
-                        # In Windows, sometimes when a TCP client program closes abruptly,
-                        # or when you press Ctrl-C a "Connection reset by peer" exception will be thrown
-
-                        broadcast_data(sock, "Client (%s, %s) quits" % sock.getpeername())
-                        print "Client (%s, %s) quits" % sock.getpeername()
-                        sock.close()
-                        CONNECTIONS.remove(sock)
-                    else:
-                        # The socket is not ready for reading, which results in an exception,
-                        # ignore this and pass on with the next client socket (without blocking)
-                        # The exception you will see here is
-                        # "The socket operation could not complete without blocking"
-                        pass
-                threadlock.release()
-
-    except:
-    #Handle the case when server program is terminated with Ctrl-C
-    #catch the exception and exit
-    pass
-            
-
-def handle_connection():
-    global CONNECTIONS, BUFFER
+def handle_connection(sock):
     while 1:
-        for sock in CONNECTIONS:
-            
         data = None
         try:
             while 1:
-                incoming = sock.recv(BUFFER)
+                incoming = sock.recv(1)
                 if (data == None):
                     data = incoming
                 else:
@@ -160,9 +82,26 @@ if __name__ == '__main__':
     sock = socket.socket()
     sock.bind( (interface, port) )
     sock.listen(5)
+    
+    sock.setblocking(0)
 
+    connections = []
     while 1:
-        print 'Waiting for HTTP Request...'
-        (client_sock, client_address) = sock.accept()
-        print 'got connection', client_address
-        handle_connection(client_sock)
+        try:
+            print 'Waiting for HTTP Request...'
+            (client_sock, client_address) = sock.accept()
+            print 'Got connection', client_address
+            client_sock.setblocking(0)
+            connections.append((client_sock, client_address))
+        except socket.error:
+            pass
+            
+        open_connections = []
+        for (client_sock, client_address) in connections:
+            print 'Processing response for', client_address
+            do_connection = handle_connection(client_sock)
+            
+            if not do_connection:
+                open_connections.append((client_sock, client_address))
+                
+        connections = open_connections
