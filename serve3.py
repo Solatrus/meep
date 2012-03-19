@@ -38,7 +38,10 @@ def handle_connection(sock):
             protocol = lines[0].split(' ')
 
             environ['REQUEST_METHOD'] = protocol[0]
-            environ['PATH_INFO'] = protocol[1]
+            path = protocol[1].split('?')
+            environ['PATH_INFO'] = path[0]
+            if len(path) > 1:
+                environ['QUERY_STRING'] = path[1]
             environ['SERVER_PROTOCOL'] = protocol[2]
 
             output += protocol[2].strip() + " "

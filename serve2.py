@@ -11,16 +11,18 @@ class ResponseObj:
 def handle_connection(sock):
     while 1:
         data = None
+        query = None
+        headerdone = False
         try:
             while 1:
                 incoming = sock.recv(1)
+
                 if (data == None):
                     data = incoming
                 else:
                     data = data + incoming
                     
-                
-                if data[len(data)-4:] == "\r\n\r\n":
+                if "\r\n\r\n" == data[-4:]:
                     break
 
             if not data:
@@ -38,7 +40,10 @@ def handle_connection(sock):
             protocol = lines[0].split(' ')
 
             environ['REQUEST_METHOD'] = protocol[0]
-            environ['PATH_INFO'] = protocol[1]
+            path = protocol[1].split('?')
+            environ['PATH_INFO'] = path[0]
+            if len(path) > 1:
+                environ['QUERY_STRING'] = path[1]
             environ['SERVER_PROTOCOL'] = protocol[2]
 
             output += protocol[2].strip() + " "
@@ -68,7 +73,7 @@ def handle_connection(sock):
             
             sock.send(output)
 
-            if data[len(data)-4:] == "\r\n\r\n":
+            if "\r\n\r\n" == data[-4:]:
                 sock.close()
                 break
         except socket.error:
