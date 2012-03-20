@@ -102,7 +102,7 @@ class MeepExampleApp(object):
         headers.append((k, v))
         start_response('302 Found', headers)
         
-        return "no such content"
+        return [ render_page('logout.html') ] 
         
     def add_user(self, environ, start_response):
         cookie = environ.get('HTTP_COOKIE')

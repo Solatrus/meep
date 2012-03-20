@@ -59,20 +59,18 @@ def handle_connection(sock):
                     environ['SCRIPT_NAME'] = linedata[1]
                 elif linedata[0] == "cookie":
                     environ['HTTP_COOKIE'] = linedata[1]
-                elif linedata[0] == "content-length":
+                elif (protocol[0] == "POST" and linedata[0] == "content-length"):
+                    #
                     if int(linedata[1]) > 0:
-                        print "Input found"
-                        while 1:
-                            incoming = sock.recv(2)
+                        readCount = int(linedata[1])
+                        while (i < readCount):
+                            incoming = sock.recv(1)
                             if not incoming:
                                 break
                                 
                             post = post + incoming
-                            
-                            print post
                                 
-                            if len(incoming) < 2:
-                                break
+                            i += 1
                         
                         environ['wsgi.input'] = post
             
@@ -92,9 +90,12 @@ def handle_connection(sock):
             output += "Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\r\n"
             output += "Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\r\n"
 
-            output += responsehdrs[0] + ": " + responsehdrs[1] + "\r\n"
+            output += responsehdrs[0] + ": " + responsehdrs[1] + "\r\n\r\n"
 
-            output += "\r\n" + str(html[0]).strip('\n').strip('\r') + "\r\n"
+            if (protocol[0] == "GET"):
+                output += str(html[0]).strip('\n').strip('\r') + "\r\n"
+            elif (protocol[0] == "POST"):
+                output += post
             print output
             
             sock.send(output)
