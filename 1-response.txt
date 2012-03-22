@@ -1,0 +1,22 @@
+HTTP/1.1 200 OK
+Date: Tue, 28 Feb 2012 05:37:07 GMT
+Server: WSGIServer/0.1 Python/2.7
+Content-type: text/html
+
+<html>
+<head>
+
+<title>meep: add message!</title>
+
+</head>
+<body>
+
+
+<form action='add_action' method='GET'>
+Title: <input type='text' name='title'><br>
+Message:<input type='text' name='message'><br>
+<input type='submit'></form>
+
+
+</body>
+</html>

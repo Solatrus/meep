@@ -1,0 +1,9 @@
+go http://localhost:8080/
+follow "Log in"
+
+fv 1 username 'admin'
+fv 1 password 'admin'
+submit
+
+find 'Log out'
+url /

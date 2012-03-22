@@ -1,0 +1,19 @@
+go http://localhost:8080/
+follow "Log in"
+
+fv 1 username 'admin'
+fv 1 password 'admin'
+submit
+
+url /
+follow "Add a topic"
+
+fv 1 title 'test topic FOO'
+fv 1 msgtitle 'test title GLUB'
+fv 1 message 'Message message'
+submit
+
+url /m/list_topics
+follow "test topic FOO"
+
+find 'GLUB'
