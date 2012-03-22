@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}meep: reply to message #{{ message.id }}{% endblock title %}
+
+{% block body %}
+
+{% if topic_id == -1 %}
+<form action='add_action' method='POST'>
+{% else %}
+<form action='add_message_topic_action' method='POST'>
+{% endif %}
+    Title: <input type='text' name='title' value='RE: {{ message.title }}'><br>
+    Message:<input type='text' name='message' ><br>
+    {% if topic_id >= 0 %}
+    <input type='hidden' name='topicid' value='{{ topic_id }}'>
+    {% endif %}
+    <input type='submit'>
+</form>
+
+{% endblock body %}

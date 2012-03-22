@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+{% if invalid == 'true' %}
+<p style="font-weight: bold; color: #F00;">Incorrect username or password!</p>            
+{% endif %}    
+
+<form action="/do_login" method='POST'>
+    Username: <input type='text' name='username'><br>
+    Password: <input type='password' name='password'>
+    <input type='submit' value='Login'>
+</form>
+
+<a href="/">Index</a>
+
+{% endblock body %}
