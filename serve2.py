@@ -114,16 +114,22 @@ def handle_connection(sock):
                     
             html = app(environ, response.start_response)
 
+            #print '***********************\n', response.status_code, '\n************************'
+
             output.append(response.status_code + '\r\n')
-            responsehdrs = response.headers[0]
+
+            # If it's a 302 response, there's a 3rd header
+            #if response.status_code == "302 Found":
+            #output.append(response.headers[2][0] + ": " + response.headers[2][1] + "\r\n")
 
             output.append("Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\r\n")
             output.append("Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\r\n")
 
-            output.append(responsehdrs[0] + ": " + responsehdrs[1] + "\r\n\r\n")
+            for headerline in response.headers:
+                output.append(headerline[0] + ": " + headerline[1] + "\r\n")
 
             #if (protocol[0] == "GET"):
-            output.append(str(html[0]).strip('\n').strip('\r') + "\r\n")
+            output.append("\r\n" + str(html[0]).strip('\n').strip('\r') + "\r\n")
             #elif (protocol[0] == "POST"):
                 #output.append(post + "\r\n")
 

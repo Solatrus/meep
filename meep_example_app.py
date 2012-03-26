@@ -39,7 +39,7 @@ class MeepExampleApp(object):
         return [ render_page('login.html', invalid='false') ]
 
     def do_login(self, environ, start_response):
-        print environ['wsgi.input']
+        #print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ, keep_blank_values=True)
         
         try:
@@ -76,6 +76,8 @@ class MeepExampleApp(object):
                 loginSuccess = True
                 
                 headers.append((k, v))
+
+                #print headers
                 
                 start_response('302 Found', headers)
                 return ["Valid password"]
