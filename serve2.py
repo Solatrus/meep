@@ -1,4 +1,4 @@
-import cgi, meep_example_app, time, meepcookie, sys, socket
+import cgi, meep_example_app, time, meepcookie, sys, socket, StringIO, urllib
 
 class ResponseObj:
     def __init__(self):
@@ -17,6 +17,9 @@ def handle_connection(sock):
             while 1:
                 incoming = sock.recv(2)
 
+                if not incoming:
+                    break
+
                 if (data == None):
                     data = incoming
                 else:
@@ -32,7 +35,7 @@ def handle_connection(sock):
             
             meep_example_app.initialize()
             app = meep_example_app.MeepExampleApp()
-            output = ""
+            output = []
             environ = {}
             
             lines = data.split('\r\n')
@@ -47,9 +50,12 @@ def handle_connection(sock):
                 environ['QUERY_STRING'] = path[1]
             environ['SERVER_PROTOCOL'] = protocol[2]
 
-            output += protocol[2].strip() + " "
+            output.append(protocol[2].strip() + " ")
             
-            post = ''
+            post = {}
+            postin = ""
+            postkey = ""
+            postval = ""
 
             for line in lines:
                 print line
@@ -61,44 +67,70 @@ def handle_connection(sock):
                     environ['HTTP_COOKIE'] = linedata[1]
                 elif (protocol[0] == "POST" and linedata[0] == "content-length"):
                     #
+                    i = 0
                     if int(linedata[1]) > 0:
                         readCount = int(linedata[1])
                         while (i < readCount):
                             incoming = sock.recv(1)
+                            if incoming == "=":
+                                postkey = postin
+                                postin = ""
+                                incoming = sock.recv(1)
+                                i += 1
+                            elif incoming == '&':
+                                postval = postin
+                                post[postkey] = postval
+                                postin = ""
+                                incoming = sock.recv(1)
+                                i += 1
+                            
                             if not incoming:
                                 break
                                 
-                            post = post + incoming
+                            postin = postin + incoming
                                 
                             i += 1
+
+                        if postin:
+                            postval = postin
+                        else:
+                            postval = ""
+                            
+                        post[postkey] = postval
+
+                        print post
+
+                        s = urllib.urlencode(post)
                         
-                        environ['wsgi.input'] = post
+                        environ['wsgi.input'] = StringIO.StringIO(s)
             
-            print post
+            #print post
                     
             print "Response:\n"
             
-            print environ
+            #print environ
             
             response = ResponseObj()
                     
             html = app(environ, response.start_response)
 
-            output += response.status_code + '\r\n'
+            output.append(response.status_code + '\r\n')
             responsehdrs = response.headers[0]
 
-            output += "Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\r\n"
-            output += "Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\r\n"
+            output.append("Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\r\n")
+            output.append("Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\r\n")
 
-            output += responsehdrs[0] + ": " + responsehdrs[1] + "\r\n\r\n"
+            output.append(responsehdrs[0] + ": " + responsehdrs[1] + "\r\n\r\n")
 
-            if (protocol[0] == "GET"):
-                output += str(html[0]).strip('\n').strip('\r') + "\r\n"
-            elif (protocol[0] == "POST"):
-                output += post
-            print output
+            #if (protocol[0] == "GET"):
+            output.append(str(html[0]).strip('\n').strip('\r') + "\r\n")
+            #elif (protocol[0] == "POST"):
+                #output.append(post + "\r\n")
+
+            final = "".join(output)
+            print final
             
-            sock.send(output)
+            sock.send(final)
 
             if "\r\n\r\n" == data[-4:]:
                 sock.close()

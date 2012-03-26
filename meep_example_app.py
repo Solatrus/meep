@@ -39,7 +39,8 @@ class MeepExampleApp(object):
         return [ render_page('login.html', invalid='false') ]
 
     def do_login(self, environ, start_response):
-        form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
+        print environ['wsgi.input']
+        form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ, keep_blank_values=True)
         
         try:
             username = form['username'].value
@@ -77,7 +78,7 @@ class MeepExampleApp(object):
                 headers.append((k, v))
                 
                 start_response('302 Found', headers)
-                return "Valid password"
+                return ["Valid password"]
             
             
         if not loginSuccess:
@@ -364,9 +365,9 @@ class MeepExampleApp(object):
         fn = call_dict.get(url)
 
         if fn is None:
-            start_response("404 Not Found", [('Content-type', 'text/html')])
-            return ["Page not found."]
-
+            serve = MimeServe(url)
+            return serve.Go(environ, start_response)
+            
         try:
             return fn(environ, start_response)
         except:
@@ -377,3 +378,30 @@ class MeepExampleApp(object):
             status = '500 Internal Server Error'
             start_response(status, [('Content-type', 'text/html')])
             return [x]
+
+class MimeServe(object):
+    def __init__(self, filename):
+        # Failsafe to plain text in case it matches nothing
+        c_type = "text/plain"
+        if filename.endswith(".jpg"):
+            c_type = "image/jpeg"
+        elif filename.endswith(".gif"):
+            c_type = "image/gif"
+        elif filename.endswith(".html") or filename.endswith(".htm"):
+            c_type = "text/html"
+        elif filename.endswith(".ico"):
+            c_type = "image/x-icon"
+        
+        self.content_type = c_type
+        self.filename = filename
+
+    def Go(self, environ, start_response):
+        try:
+            fp = open(self.filename)
+        except IOError:
+            start_response("404 not found", [('Content-type', 'text/html'),])
+            return ["File not found"]
+
+        data = fp.read()
+        start_response("200 OK", [('Content-type', self.content_type),])
+        return data
