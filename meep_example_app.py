@@ -128,8 +128,8 @@ class MeepExampleApp(object):
             return ["Not admin"]
                 
     def add_user_action(self, environ, start_response):
-        print environ['wsgi.input']
-        form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
+        #print environ['wsgi.input']
+        form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ,keep_blank_values=True)
         
         try:
             username = form['username'].value
