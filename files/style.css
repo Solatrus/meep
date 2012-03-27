@@ -36,14 +36,14 @@ background-repeat:no-repeat;
 height:200px;
 width:800px;
 background-color:#FFAA00;
-color:#FFFFFF;
+font-size:22px;
+color:#AAA;
 border-bottom:1px solid #FFFFFF;
 }
 
 #header a {
 padding:2px;
 color:#000000;
-font-size:22px;
 }
 
 #header a:hover {
@@ -57,6 +57,7 @@ padding-top:160px;
 padding-left:175px;
 margin:0px;
 font-variant:small-caps;
+color: #FFF !important;
 }
 
 #content {
