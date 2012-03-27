@@ -27,6 +27,7 @@ Functions and classes:
 
 __all__ = ['Message', 'get_all_messages', 'get_message', 'delete_message',
            'User', 'get_user', 'get_all_users', 'delete_user']
+         
 
 ###
 # internal data structures & functions; please don't access these
@@ -73,7 +74,7 @@ def _reset():
 def _save_data():
     obj = (_users, _user_ids, _topics, _messages)
     
-    #print "Saving pickle db...\n\n"
+    print "Saving pickle db...\n\n"
     
     filename = './save.meep.pickle'
     fp = open(filename, 'w')
@@ -98,10 +99,17 @@ def load_data():
         
         for m in messages:
             _messages[m] = messages[m]
+            
+        for _t in _topics:
+            for _m in get_topic(_t).messages:
+                print get_message(_m).post
         
         fp.close()
         
         _save_data()
+        
+        isLoaded = True
+        print "Meep database loaded!\n"
         
     except IOError:
         print 'Pickle file not found, initializing to default state...'

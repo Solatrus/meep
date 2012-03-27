@@ -33,7 +33,6 @@ def handle_connection(sock):
 
             print 'Data recieved from: ', sock.getsockname(), '\n'
             
-            meep_example_app.initialize()
             app = meep_example_app.MeepExampleApp()
             output = []
             environ = {}
@@ -58,7 +57,7 @@ def handle_connection(sock):
             postval = ""
 
             for line in lines:
-                print line
+                #print line
                 line = line.lower()
                 linedata = str(line).split(": ")
                 if linedata[0] == "referer":
@@ -98,15 +97,14 @@ def handle_connection(sock):
                             
                         post[postkey] = postval
 
-                        print post
+                        #print post
 
                         s = urllib.urlencode(post)
                         
                         environ['wsgi.input'] = StringIO.StringIO(s)
             
-            #print post
                     
-            print "Response:\n"
+            #print "Response:\n"
             
             #print environ
             
@@ -134,7 +132,7 @@ def handle_connection(sock):
                 #output.append(post + "\r\n")
 
             final = "".join(output)
-            print final
+            #print final
             
             sock.send(final)
 
@@ -145,6 +143,7 @@ def handle_connection(sock):
             break
 
 if __name__ == '__main__':
+    meep_example_app.initialize()
     interface, port = sys.argv[1:3]
     port = int(port)
 

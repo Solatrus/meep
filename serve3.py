@@ -11,29 +11,34 @@ class ResponseObj:
 def handle_connection(sock):
     while 1:
         data = None
+        query = None
+        headerdone = False
         try:
             while 1:
                 incoming = sock.recv(1)
+
+                if not incoming:
+                    break
+
                 if (data == None):
                     data = incoming
                 else:
                     data = data + incoming
                     
-                
-                if data[len(data)-4:] == "\r\n\r\n":
+                if "\r\n\r\n" == data[-4:]:
                     break
 
             if not data:
                 break
 
-            print 'Data recieved from: ', (sock.getsockname(),), '\n', (data,), '\n\n', 'Response:\n'
+            print 'Data recieved from: ', sock.getsockname(), '\n'
             
-            meep_example_app.initialize()
             app = meep_example_app.MeepExampleApp()
-            output = ""
+            output = []
             environ = {}
             
             lines = data.split('\r\n')
+            
 
             protocol = lines[0].split(' ')
 
@@ -44,40 +49,101 @@ def handle_connection(sock):
                 environ['QUERY_STRING'] = path[1]
             environ['SERVER_PROTOCOL'] = protocol[2]
 
-            output += protocol[2].strip() + " "
+            output.append(protocol[2].strip() + " ")
+            
+            post = {}
+            postin = ""
+            postkey = ""
+            postval = ""
 
             for line in lines:
+                #print line
+                line = line.lower()
                 linedata = str(line).split(": ")
                 if linedata[0] == "referer":
                     environ['SCRIPT_NAME'] = linedata[1]
                 elif linedata[0] == "cookie":
                     environ['HTTP_COOKIE'] = linedata[1]
+                elif (protocol[0] == "POST" and linedata[0] == "content-length"):
+                    #
+                    i = 0
+                    if int(linedata[1]) > 0:
+                        readCount = int(linedata[1])
+                        while (i < readCount):
+                            incoming = sock.recv(1)
+                            if incoming == "=":
+                                postkey = postin
+                                postin = ""
+                                incoming = sock.recv(1)
+                                i += 1
+                            elif incoming == '&':
+                                postval = postin
+                                post[postkey] = postval
+                                postin = ""
+                                incoming = sock.recv(1)
+                                i += 1
+                            
+                            if not incoming:
+                                break
+                                
+                            postin = postin + incoming
+                                
+                            i += 1
+
+                        if postin:
+                            postval = postin
+                        else:
+                            postval = ""
+                            
+                        post[postkey] = postval
+
+                        #print post
+
+                        s = urllib.urlencode(post)
+                        
+                        environ['wsgi.input'] = StringIO.StringIO(s)
+            
                     
+            #print "Response:\n"
+            
+            #print environ
             
             response = ResponseObj()
                     
             html = app(environ, response.start_response)
 
-            output += response.status_code + '\r\n'
-            responsehdrs = response.headers[0]
+            #print '***********************\n', response.status_code, '\n************************'
 
-            output += "Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\r\n"
-            output += "Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\r\n"
+            output.append(response.status_code + '\r\n')
 
-            output += responsehdrs[0] + ": " + responsehdrs[1] + "\r\n"
+            # If it's a 302 response, there's a 3rd header
+            #if response.status_code == "302 Found":
+            #output.append(response.headers[2][0] + ": " + response.headers[2][1] + "\r\n")
 
-            output += "\r\n" + str(html[0]).strip('\n').strip('\r') + "\r\n"
-            print output
+            output.append("Date: " + time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()) + "\r\n")
+            output.append("Server: WSGIServer/0.1 Python/" + sys.version[:3] + "\r\n")
+
+            for headerline in response.headers:
+                output.append(headerline[0] + ": " + headerline[1] + "\r\n")
+
+            #if (protocol[0] == "GET"):
+            output.append("\r\n" + str(html[0]).strip('\n').strip('\r') + "\r\n")
+            #elif (protocol[0] == "POST"):
+                #output.append(post + "\r\n")
+
+            final = "".join(output)
+            #print final
             
-            sock.send(output)
+            sock.send(final)
 
-            if data[len(data)-4:] == "\r\n\r\n":
+            if "\r\n\r\n" == data[-4:]:
                 sock.close()
                 break
         except socket.error:
             break
 
 if __name__ == '__main__':
+    meep_example_app.initialize()
     interface, port = sys.argv[1:3]
     port = int(port)
 

@@ -2,7 +2,7 @@
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-<title>Meep</title>
+<title>{% block title %} Meep {% endblock title %}</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="/files/style.css" type="text/css" />
 <!--[if IE ]><style type="text/css">
@@ -28,13 +28,9 @@ padding-top:112px;
 {% else %}
 <a href='/logout'>Log out</a>
 {% endif %}
-{% if username == "admin" %}
-<span style="font-weight: bold;">Admin</span>
-<a href='/add_user'>+ New User</a>
-{% endif %}
 </span>
 
-<div class="title">{% block title %}Index{% endblock title %}</div>
+<div class="title">{% block title2 %}Index{% endblock title2 %}</div>
 </div>
 
 <div id="content">
@@ -42,6 +38,13 @@ padding-top:112px;
 {% endblock %}
 </div>
 </div>
-<div id="footer">&copy; 2007 Pagename | Design by <a href="http://www.rotw.de.ki/" target="_blank">RotW</a></div>
+<div id="footer">&copy; 2007 Pagename | Design by <a href="http://www.rotw.de.ki/" target="_blank">RotW</a>
+{% if username == "admin" %}
+<div style="float: right; display: inline;">
+    <span style="font-weight: bold;">Admin functions: </span>
+    <a href='/add_user'>Add New User</a>
+</div>
+{% endif %}
+</div>   
 </body>
 </html>

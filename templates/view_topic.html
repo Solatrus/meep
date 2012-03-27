@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 
 {% block title %}meep: {{ topic.title }}{% endblock title %}
+{% block title2 %}meep: {{ topic.title }}{% endblock title2 %}
 
 {% block body %}
 
 
-<h1>{{ topic.title}}</h1>
+<h1>{{ topic.title }}</h1>
 {% for item in messages %}
     <p>id: {{ item.id }}</p>
     <p>title: {{ item.title }}</p>
@@ -25,7 +26,5 @@
 </form>
 
 <a href='/m/list_topics'>Go back</a><br />
-<br />
-<a href='/'>Index</a>
 
 {% endblock body %}

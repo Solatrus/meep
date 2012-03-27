@@ -118,7 +118,7 @@ class MeepExampleApp(object):
         if username == 'admin':
             start_response("200 OK", headers)
        
-            return [ render_page('add_user.html') ]
+            return [ render_page('add_user.html', username=username) ]
         else:
             k = 'Location'
             v = '/login'
@@ -147,23 +147,35 @@ class MeepExampleApp(object):
     def list_topics(self, environ, start_response):
         topics = meeplib.get_all_topics()
         
+        cookie = environ.get('HTTP_COOKIE', '')
+
+        username = meepcookie.load_username(cookie)
+        
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
         
-        return [ render_page('list_topics.html', topics=topics) ]
+        return [ render_page('list_topics.html', topics=topics, username=username) ]
         
     def view_topic(self, environ, start_response):
+        cookie = environ.get('HTTP_COOKIE', '')
+
+        username = meepcookie.load_username(cookie)
         qString = cgi.parse_qs(environ['QUERY_STRING'])
         tId = qString.get('id', [''])[0]
+        print tId
         topic = meeplib.get_topic(int(tId))
         messages = topic.get_messages()
+        
+        for message in messages:
+            print message
             
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
         
-        return [ render_page('view_topic.html', messages=messages, topic=topic) ]
+        return [ render_page('view_topic.html', messages=messages, topic=topic, username=username) ]
     
     def list_messages(self, environ, start_response):
+    
         messages = meeplib.get_all_messages()
             
         headers = [('Content-type', 'text/html')]
@@ -172,11 +184,15 @@ class MeepExampleApp(object):
         return [ render_page('list_messages.html', messages=messages) ]
         
     def add_topic(self, environ, start_response):
+        cookie = environ.get('HTTP_COOKIE', '')
+
+        username = meepcookie.load_username(cookie)
+        
         headers = [('Content-type', 'text/html')]
         
         start_response("200 OK", headers)
 
-        return """<form action='add_topic_action' method='POST'>Add a new topic<br>Topic name: <input type='text' name='title'><br>Message title:<input type='text' name='msgtitle'><br>Message:<input type='text' name='message'><br><input type='submit'></form>"""
+        return [ render_page('add_topic.html', username=username) ]
         
     def add_topic_action(self, environ, start_response):
         print environ['wsgi.input']
@@ -230,7 +246,6 @@ class MeepExampleApp(object):
             headers = [('Content-type', 'text/html')]
             headers.append(('Location', '/m/list'))
             start_response("302 Found", headers)
-            print "Message added"
             return ["message added"]
         else:
             headers = [('Content-type', 'text/html')]
@@ -273,6 +288,7 @@ class MeepExampleApp(object):
         
     def reply(self, environ, start_response):
         print environ['wsgi.input']
+
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         
         id = int(form['id'].value)
@@ -286,6 +302,9 @@ class MeepExampleApp(object):
         return [ render_page('reply.html', message=m, topic_id=-1) ]
         
     def reply_topic(self, environ, start_response):
+        cookie = environ.get('HTTP_COOKIE', '')
+
+        username = meepcookie.load_username(cookie)
         print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         
@@ -298,7 +317,7 @@ class MeepExampleApp(object):
         
         start_response("200 OK", headers)
 
-        return [ render_page('reply.html', message=m, topic_id=topic_id) ]
+        return [ render_page('reply.html', message=m, topic_id=topic_id, username=username) ]
 		
     def add_message_topic_action(self, environ, start_response):
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
@@ -315,9 +334,11 @@ class MeepExampleApp(object):
         user = meeplib.get_user(username)
         
         if user is not None:
+            print title, message, user
             new_message = meeplib.Message(title, message, user)
             
             topic.add_message(new_message)
+            print "Message added to topic" + topicId
             
             headers = [('Content-type', 'text/html')]
             headers.append(('Location', '/m/topics/view?id=%d' % (topic.id)))
@@ -369,7 +390,7 @@ class MeepExampleApp(object):
         url = environ['PATH_INFO']
         fn = call_dict.get(url)
         
-        print "************ URL: ", url, "\n\n\n"
+        #print "************ URL: ", url, "\n\n\n"
 
         if fn is None:
             serve = MimeServe(url)
@@ -406,11 +427,10 @@ class MimeServe(object):
 
     def Go(self, environ, start_response):
         try:
-            print "Filename:", self.filename
-            print os.getcwd()
+            #print "Filename:", self.filename
+            #print os.getcwd()
             fp = open(os.getcwd() + self.filename, mode="r")
         except IOError:
-            #print "blublublublublubu"
             start_response("404 not found", [('Content-type', 'text/html'),])
             return ["File not found"]
 

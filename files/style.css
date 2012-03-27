@@ -26,6 +26,8 @@ font-family:arial,helvetica,"sans serif";
 #all {
 width:800px;
 border-right:1px solid #FFFFFF;
+margin-left: auto;
+margin-right: auto;
 }
 
 #header {
@@ -74,6 +76,8 @@ color:#888888;
 font-size:10px;
 background-image:url('/files/footer.png');
 background-repeat:repeat-x;
+margin-left: auto;
+margin-right: auto;
 }
 
 #footer a {

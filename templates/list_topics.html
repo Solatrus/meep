@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 
+{% block title %}meep: Topic List{% endblock title %}
+{% block title2 %}meep: Topic List{% endblock title2 %}
+
 {% block body %}
 
+<ul>
  {% for item in topics %}
-    <a href="/m/topics/view?id={{item.id}}">{{ item.title }} </a>
-    <hr>
+    <li><a href="/m/topics/view?id={{item.id}}">{{ item.title }} </a></li>
  {% endfor %}
- 
- <a href="/">Index</a>
+<ul>
  
  {% endblock body %}
