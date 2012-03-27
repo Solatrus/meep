@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}meep: Userlist{% endblock title %}
+{% block title2 %}meep: Userlist{% endblock title2 %}
+
+{% block body %}
+
+<ul>
+ {% for item in users %}
+    <li>{{ item.username }}</li>
+ {% endfor %}
+<ul>
+ 
+ {% endblock body %}
