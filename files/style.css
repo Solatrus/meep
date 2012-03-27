@@ -29,7 +29,7 @@ border-right:1px solid #FFFFFF;
 }
 
 #header {
-background-image:url('/header.jpg');
+background-image:url('/files/header.jpg');
 background-repeat:no-repeat;
 height:200px;
 width:800px;
@@ -72,7 +72,7 @@ width:800px;
 background-color:#333333;
 color:#888888;
 font-size:10px;
-background-image:url('/footer.png');
+background-image:url('/files/footer.png');
 background-repeat:repeat-x;
 }
 

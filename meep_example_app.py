@@ -2,6 +2,7 @@ import meeplib
 import traceback
 import cgi
 import meepcookie
+import os
 from time import sleep
 
 from jinja2 import Environment, FileSystemLoader
@@ -406,14 +407,15 @@ class MimeServe(object):
     def Go(self, environ, start_response):
         try:
             print "Filename:", self.filename
-            fp = open(self.filename)
+            print os.getcwd()
+            fp = open(os.getcwd() + self.filename, mode="r")
         except IOError:
-            print "blublublublublubu"
+            #print "blublublublublubu"
             start_response("404 not found", [('Content-type', 'text/html'),])
             return ["File not found"]
 
         data = fp.read()
         headers = [('Content-type', self.content_type),]
-        headers.append(('Cache-Control','public, max-age=300'))
-        start_response("200 OK", )
-        return data
+        headers.append(('Content-Disposition', 'attachment; filename='+self.filename))
+        start_response("200 OK", headers)
+        return [data]
