@@ -15,7 +15,7 @@ def handle_connection(sock):
         headerdone = False
         try:
             while 1:
-                incoming = sock.recv(2)
+                incoming = sock.recv(1)
 
                 if not incoming:
                     break

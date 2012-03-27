@@ -105,7 +105,7 @@ class MeepExampleApp(object):
         headers.append((k, v))
         start_response('302 Found', headers)
         
-        return [ render_page('logout.html') ] 
+        return [ "Log out" ] 
         
     def add_user(self, environ, start_response):
         cookie = environ.get('HTTP_COOKIE')
@@ -124,7 +124,7 @@ class MeepExampleApp(object):
             headers.append((k, v))
             start_response('302 Found', headers)
             
-            return "Not admin"
+            return ["Not admin"]
                 
     def add_user_action(self, environ, start_response):
         print environ['wsgi.input']
@@ -141,7 +141,7 @@ class MeepExampleApp(object):
         headers.append(('Location', '/'))
         start_response('302 Found', headers)
         
-        return "user added"
+        return ["user added"]
 
     def list_topics(self, environ, start_response):
         topics = meeplib.get_all_topics()
@@ -229,11 +229,13 @@ class MeepExampleApp(object):
             headers = [('Content-type', 'text/html')]
             headers.append(('Location', '/m/list'))
             start_response("302 Found", headers)
+            print "Message added"
             return ["message added"]
         else:
             headers = [('Content-type', 'text/html')]
             headers.append(('Location', '/login'))
             start_response("302 Found", headers)
+            print "Session expired"
             return ["session expired"]
         
     def delete_message(self, environ, start_response):
@@ -365,6 +367,8 @@ class MeepExampleApp(object):
         # see if the URL is in 'call_dict'; if it is, call that function.
         url = environ['PATH_INFO']
         fn = call_dict.get(url)
+        
+        print "************ URL: ", url, "\n\n\n"
 
         if fn is None:
             serve = MimeServe(url)
@@ -384,26 +388,32 @@ class MeepExampleApp(object):
 class MimeServe(object):
     def __init__(self, filename):
         # Failsafe to plain text in case it matches nothing
-        c_type = "text/plain"
+        c_type = "text/plain;"
         if filename.endswith(".jpg"):
-            c_type = "image/jpeg"
+            c_type = "image/jpeg;"
         elif filename.endswith(".gif"):
-            c_type = "image/gif"
+            c_type = "image/gif;"
         elif filename.endswith(".html") or filename.endswith(".htm"):
-            c_type = "text/html"
+            c_type = "text/html;"
         elif filename.endswith(".ico"):
-            c_type = "image/x-icon"
+            c_type = "image/x-icon;"
+        elif filename.endswith(".css"):
+            c_type = "text/css;"
         
         self.content_type = c_type
         self.filename = filename
 
     def Go(self, environ, start_response):
         try:
+            print "Filename:", self.filename
             fp = open(self.filename)
         except IOError:
+            print "blublublublublubu"
             start_response("404 not found", [('Content-type', 'text/html'),])
             return ["File not found"]
 
         data = fp.read()
-        start_response("200 OK", [('Content-type', self.content_type),])
+        headers = [('Content-type', self.content_type),]
+        headers.append(('Cache-Control','public, max-age=300'))
+        start_response("200 OK", )
         return data
