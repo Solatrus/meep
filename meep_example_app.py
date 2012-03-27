@@ -143,6 +143,18 @@ class MeepExampleApp(object):
         start_response('302 Found', headers)
         
         return ["user added"]
+        
+    def list_users(self, environ, start_response):
+        users = meeplib.get_all_users()
+        
+        cookie = environ.get('HTTP_COOKIE', '')
+
+        username = meepcookie.load_username(cookie)
+        
+        headers = [('Content-type', 'text/html')]
+        start_response("200 OK", headers)
+        
+        return [ render_page('list_users.html', users=users, username=username) ]
 
     def list_topics(self, environ, start_response):
         topics = meeplib.get_all_topics()
@@ -331,10 +343,12 @@ class MeepExampleApp(object):
         cookie = environ.get('HTTP_COOKIE', '')
 
         username = meepcookie.load_username(cookie)
+        print username
         user = meeplib.get_user(username)
+        print user
         
-        if user is not None:
-            print title, message, user
+        if username != "":
+            #print title, message, user
             new_message = meeplib.Message(title, message, user)
             
             topic.add_message(new_message)
@@ -368,6 +382,7 @@ class MeepExampleApp(object):
         call_dict = { '/': self.index,
                       '/add_user': self.add_user,
                       '/add_user_action': self.add_user_action,
+                      '/list_users': self.list_users,
                       '/login': self.login,
                       '/do_login': self.do_login,
                       '/logout': self.logout,
