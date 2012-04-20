@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}meep: reply to message #{{ message.id }}{% endblock title %}
-{% block title2 %}meep: reply to message #{{ message.id }}{% endblock title2 %}
+{% block title %}meep: reply to message #{{ message.msg_id }}{% endblock title %}
+{% block title2 %}meep: reply to message #{{ message.msg_id }}{% endblock title2 %}
 
 {% block body %}
 
@@ -10,7 +10,7 @@
 {% else %}
 <form action='add_message_topic_action' method='POST'>
 {% endif %}
-    Title: <input type='text' name='title' value='RE: {{ message.title }}'><br>
+    Title: <input type='text' name='title' value='RE: {{ message.header }}'><br>
     Message:<input type='text' name='message' ><br>
     {% if topic_id >= 0 %}
     <input type='hidden' name='topicid' value='{{ topic_id }}'>

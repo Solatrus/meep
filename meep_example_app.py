@@ -1,4 +1,4 @@
-import meeplib
+import MeeplibMySQL as meeplib
 import traceback
 import cgi
 import meepcookie
@@ -8,7 +8,8 @@ from time import sleep
 from jinja2 import Environment, FileSystemLoader
 
 def initialize():
-    meeplib.load_data()
+    #meeplib.load_data()
+	meeplib.initialize()
 
     # done.
 
@@ -51,44 +52,48 @@ class MeepExampleApp(object):
             
         
         # retrieve user
-        user = meeplib.get_user(username)
+        user = meeplib.User(username, password)
         
         k = 'Location'
         v = ''
         returnMsg = ""
         
-        loginSuccess = False
+        loginSuccess = user.validlogin
         
         headers = [('Content-type', 'text/html')]
         
-        if user is not None and password is not None:
+        """if user is not None and password is not None:
             if password == user.password:
             # set content-type
 
-                cookie_name, cookie_val = \
-                            meepcookie.make_set_cookie_header('username',
-                                                            user.username)
-                headers.append((cookie_name, cookie_val))
+
             
                 # send back a redirect to '/'
                 
-                v = '/'
-                
                 loginSuccess = True
                 
-                headers.append((k, v))
 
-                #print headers
-                
-                start_response('302 Found', headers)
-                return ["Valid password"]
+
+                #print headers"""
             
             
         if not loginSuccess:
             headers = [('Content-type', 'text/html')]
             start_response("200 OK", headers)
             
-            return [ render_page('login.html', invalid='true') ]  
+            return [ render_page('login.html', invalid='true') ]
+        else:
+            cookie_name, cookie_val = meepcookie.make_set_cookie_header('username',username)
+            
+            v = '/'
+            
+            headers.append((cookie_name, cookie_val))
+            
+            headers.append((k, v))
+            
+            start_response('302 Found', headers)
+			
+            return ["Valid password"]
 
 
     def logout(self, environ, start_response):
@@ -134,7 +139,7 @@ class MeepExampleApp(object):
         try:
             username = form['username'].value
             password = form['password'].value
-            user = meeplib.User(username, password)
+            user = meeplib.User.newuser(username, password)
         except:
             pass
             
@@ -174,26 +179,25 @@ class MeepExampleApp(object):
         username = meepcookie.load_username(cookie)
         qString = cgi.parse_qs(environ['QUERY_STRING'])
         tId = qString.get('id', [''])[0]
-        print tId
-        topic = meeplib.get_topic(int(tId))
-        messages = topic.get_messages()
+        #print tId
+        topic = meeplib.Topic(int(tId))
         
-        for message in messages:
-            print message
+        #for message in topic.messages:
+            #print message
             
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
         
-        return [ render_page('view_topic.html', messages=messages, topic=topic, username=username) ]
+        return [ render_page('view_topic.html', messages=topic.messages, topic=topic, username=username) ]
     
-    def list_messages(self, environ, start_response):
+    """def list_messages(self, environ, start_response):
     
         messages = meeplib.get_all_messages()
             
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
 
-        return [ render_page('list_messages.html', messages=messages) ]
+        return [ render_page('list_messages.html', messages=messages) ]"""
         
     def add_topic(self, environ, start_response):
         cookie = environ.get('HTTP_COOKIE', '')
@@ -224,10 +228,10 @@ class MeepExampleApp(object):
             
             return ["session ended"]
             
-        user = meeplib.get_user(username)
+        #user = meeplib.User(username)
         
-        new_message = meeplib.Message(msgtitle, message, user)
-        new_topic = meeplib.Topic(title, new_message, user)
+        new_topic = meeplib.Topic(title, username, msgtitle, message)
+        #new_topic = meeplib.Topic(title, new_message, username)
 
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/list_topics'))
@@ -235,7 +239,7 @@ class MeepExampleApp(object):
         return ["topic added"]
         
         
-    def add_message(self, environ, start_response):
+    """def add_message(self, environ, start_response):
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
 
@@ -279,26 +283,25 @@ class MeepExampleApp(object):
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/list'))
         start_response("302 Found", headers)
-        return ["message deleted"]
+        return ["message deleted"]"""
         
     def delete_message_topic(self, environ, start_response):
         print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         
         topic_id = int(form['topic_id'].value)
-        id = int(form['id'].value)
+        msg_id = int(form['id'].value)
         
-        message = meeplib.get_message(id)
-        topic = meeplib.get_topic(topic_id)
+        topic = meeplib.Topic(topic_id)
         
-        topic.delete_message_from_topic(message)
+        topic.delete_message(msg_id)
         
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/topics/view?id=%d' % (topic_id,)))
         start_response("302 Found", headers)
         return ["message deleted"]
         
-    def reply(self, environ, start_response):
+    """def reply(self, environ, start_response):
         print environ['wsgi.input']
 
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
@@ -311,7 +314,7 @@ class MeepExampleApp(object):
         
         start_response("200 OK", headers)
 
-        return [ render_page('reply.html', message=m, topic_id=-1) ]
+        return [ render_page('reply.html', message=m, topic_id=-1) ]"""
         
     def reply_topic(self, environ, start_response):
         cookie = environ.get('HTTP_COOKIE', '')
@@ -323,7 +326,7 @@ class MeepExampleApp(object):
         id = int(form['id'].value)
         topic_id = int(form['topic_id'].value)
         
-        m = meeplib.get_message(id)
+        m = meeplib.get_message(topic_id, id)
         
         headers = [('Content-type', 'text/html')]
         
@@ -344,14 +347,14 @@ class MeepExampleApp(object):
 
         username = meepcookie.load_username(cookie)
         print username
-        user = meeplib.get_user(username)
-        print user
+        #user = meeplib.get_user(username)
+        #print user
         
         if username != "":
             #print title, message, user
-            new_message = meeplib.Message(title, message, user)
+            #new_message = meeplib.Message(title, message, username)
             
-            topic.add_message(new_message)
+            meeplib.Message.newmessage(topic.topic_id, username, title, message)
             print "Message added to topic" + topicId
             
             headers = [('Content-type', 'text/html')]
@@ -369,8 +372,8 @@ class MeepExampleApp(object):
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
         topicId = form['tid'].value
-        topic = meeplib.get_topic(int(topicId))
-        meeplib.delete_topic(topic)
+        topic = Topic(int(topicId))
+        topic.delete_topic()
         
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/list_topics'))
@@ -386,12 +389,12 @@ class MeepExampleApp(object):
                       '/login': self.login,
                       '/do_login': self.do_login,
                       '/logout': self.logout,
-                      '/m/list': self.list_messages,
+                      #'/m/list': self.list_messages,
                       '/m/list_topics': self.list_topics,
                       '/m/topics/view': self.view_topic,
-                      '/m/add': self.add_message,
+                      #'/m/add': self.add_message,
                       '/m/add_action': self.add_message_action,
-                      '/m/delete_message': self.delete_message,
+                      #'/m/delete_message': self.delete_message,
                       '/m/delete_message_topic': self.delete_message_topic,
                       '/m/reply': self.reply,
                       '/m/reply_topic': self.reply_topic,
