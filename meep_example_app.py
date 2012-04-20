@@ -391,7 +391,7 @@ class MeepExampleApp(object):
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
         topicId = form['tid'].value
-        topic = Topic(int(topicId))
+        topic = meeplib.Topic(int(topicId))
         topic.delete_topic()
         
         headers = [('Content-type', 'text/html')]

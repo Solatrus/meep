@@ -76,7 +76,7 @@ class Topic(object):
         
     def delete_topic(self):
         for msg in self.messages:
-            msg.delete_message()
+            Message.delete_message(self.topic_id, msg.msg_id)
         c.execute('DELETE FROM topics WHERE topic_id = %s', (self.topic_id,))
             
 def get_all_topics():

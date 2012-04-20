@@ -6,11 +6,11 @@ fv 1 password '4dm1n'
 submit
 
 url /
-follow "Add a new user"
+follow "Add New User"
 
 fv 1 username 'foo'
 fv 1 password 'bar'
 submit
 
 url /
-find 'You are logged in as: admin.'
+find 'Welcome back, admin.'

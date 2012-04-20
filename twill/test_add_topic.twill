@@ -6,7 +6,7 @@ fv 1 password '4dm1n'
 submit
 
 url /
-follow "Add a topic"
+follow "Add Topic"
 
 fv 1 title 'test topic FOO'
 fv 1 msgtitle 'test title GLUB'

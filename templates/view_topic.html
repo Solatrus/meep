@@ -18,19 +18,28 @@
         <input type='number' hidden='true' name='topic_id' value='{{ topic.topic_id }}'>
         <input type='submit' value='Delete message'>
     </form>
+    <form action='../reply_topic' name='reply_{{ item.msg_id }}' method='POST'>
+        <input type='number' hidden='true' name='id' value='{{ item.msg_id }}'>
+        <input type='number' hidden='true' name='topic_id' value='{{ topic.topic_id }}'>
+        <input type='submit' value='Reply'>
+    </form>
     {% endif %}
     <hr>
 {% endfor %}
  
+{% if username != "" %}
 <form action='../add_message_topic_action' name='add_message' method='POST'>
     Title: <input type='text' name='title'><br>
     Message:<input type='text' name='message'><br>
     <input type='number' hidden='true' name='topicid' value='{{ topic.topic_id }}'><input type='submit'>
 </form>
+{% endif %}
+{% if username == "admin" %}
 <form action='../delete_topic_action' name='delete_topic' method='POST'>
     <input type='number' hidden='true' name='tid' value='{{ topic.topic_id }}'>
     <input type='submit' value='Delete topic'>
 </form>
+{% endif %}
 
 <a href='/m/list_topics'>Go back</a><br />
 

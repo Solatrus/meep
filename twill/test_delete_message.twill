@@ -1,17 +1,17 @@
-go http://localhost:8000/
+go http://localhost:8080/
 follow "Log in"
 
 fv 1 username 'admin'
-fv 1 password 'admin'
+fv 1 password '4dm1n'
 submit
 
 url /
-follow "Show topics"
+follow "Topics"
 
 follow "First Topic"
 
-fv 'delete_0' id '0'
-fv 'delete_0' topic_id '0'
+fv 'delete_message_1' id 1
+fv 'delete_message_1' topic_id 1
 
 submit
 

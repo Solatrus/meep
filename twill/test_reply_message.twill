@@ -1,16 +1,24 @@
 go http://localhost:8080/
-follow "Show topics"
+follow "Log in"
+
+fv 1 username 'admin'
+fv 1 password '4dm1n'
+submit
+
+url /
+follow "Topics"
 
 follow "First Topic"
 
-fv 'reply_0' id '0'
-fv 'reply_0' topic_id '0'
+fv 'reply_1' id 1
+fv 'reply_1' topic_id 1
 
 submit
 
 url /m/reply_topic
 
+fv 1 message 'Blah blah blah reply'
+
 submit
 
 url /m/topics/view
-find 'In post 0, test said:'
