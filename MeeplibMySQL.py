@@ -3,13 +3,13 @@ import MySQLdb
 db = MySQLdb.connect(host="localhost",user="meep_db",passwd="meep_db_passw0rd!", db='cse491')
 c = db.cursor()
 
-encryptionkey = "VGhpcyBpcyBhbiBlbmNyeXB0aW9uIGtleS4="
+encryptionkey = 'VGhpcyBpcyBhbiBlbmNyeXB0aW9uIGtleS4='
     
 class Message(object):
     def __init__(self, msg_id, topic_id, username, header, msg_text):
         self.msg_id = msg_id
         self.topic_id = topic_id
-        self.user = user
+        self.user = username
         self.header = header
         self.msg_text = msg_text
         
@@ -26,8 +26,9 @@ class Message(object):
         self.msg_text = row[4]
         
     @classmethod
-    def newmessage(self, topic_id, msg_header, msg_text, user):
-        c.execute('INSERT INTO messages VALUES ( %s, %s, %s, %s )', (topic_id, username, msg_header, msg_text,))
+    def newmessage(self, topic_id, msg_header, msg_text, username):
+        c.execute("""INSERT INTO messages (topic_id, username, header, msg_text)
+                     VALUES ( %s, %s, %s, %s )""", (topic_id, username, msg_header, msg_text,))
         
     def delete_message(self):
 
@@ -46,7 +47,12 @@ class Topic(object):
         
         row = c.fetchone()
         
-        self.topic_name = row[1]
+        try:
+            self.topic_name = row[1]
+            self.topic_id = topic_id
+        except:
+            self.topic_name = "404"
+            self.topic_id = -1
         
     @classmethod
     def settopic(self, topic_id, topic_name):
@@ -57,14 +63,17 @@ class Topic(object):
         
     @classmethod
     def newtopic(self, topic_name, username, msg_header, msg_text):
-        c.execute('INSERT INTO topics VALUES ( %s )', (topic_name,))
+        c.execute('INSERT INTO topics (topic_name) VALUES ( %s )', (topic_name,))
         c.execute('SELECT * FROM topics ORDER BY topic_id DESC LIMIT 1')
         
-        for row in c:
-            c.execute('INSERT INTO messages VALUES ( %s, %s, %s, %s )', (row[0], username, msg_header, msg_text,))
-            self.topic_id = row[0]
+        self.messages = []
         
+        row = c.fetchone()
+        
+        self.messages.append(Message.newmessage(row[0], msg_header, msg_text, username))
+        self.topic_id = row[0]        
         self.topic_name = topic_name
+        
         return self
         
     def delete_topic(self):
@@ -78,6 +87,7 @@ def get_all_topics():
     c.execute('SELECT * FROM topics')
     
     for row in c:
+        print row
         topics.append(Topic.settopic(row[0],row[1]))
     
     return topics
@@ -90,12 +100,18 @@ class User(object):
             row = c.fetchone()
         except:
             self.validlogin = False
+            
+        print password
+        print row[0]
         
-        self.validlogin = password == row[0]
+        isvalid = password == row[0]
+        print isvalid
+        
+        self.validlogin = isvalid
         
     @classmethod
     def newuser(self, username, password):
-        c.execute('INSERT INTO users VALUES ( %s, AES_ENCRYPT(%s, %s) )', (password, encryptionkey,))
+        c.execute('INSERT INTO users (username, password) VALUES ( %s, AES_ENCRYPT(%s, %s) )', (username, password, encryptionkey,))
         
 def get_all_users():
     users = []
@@ -107,9 +123,11 @@ def get_all_users():
     return users
     
 def initialize():
-    #c.execute('CREATE TABLE messages (msg_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_id INTEGER, username VARCHAR(16), header TINYTEXT, msg_text TEXT)')
-    #c.execute('CREATE TABLE topics (topic_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_name TEXT)')
-    #c.execute('CREATE TABLE users (username VARCHAR(16), password VARCHAR(40))')
+    c.execute('DROP TABLE messages')
+    c.execute('DROP TABLE topics')
+    c.execute('DROP TABLE users')
+    c.execute('CREATE TABLE messages (msg_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_id INTEGER, username VARCHAR(16), header TINYTEXT, msg_text TEXT)')
+    c.execute('CREATE TABLE topics (topic_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_name TEXT)')
+    c.execute('CREATE TABLE users (username VARCHAR(16), password VARCHAR(40))')
     Topic.newtopic("My First Topic", "admin", "my title", "This is my message!")
-    #c.execute('INSERT INTO messages (1, \'admin\', \'my title\', \'This is my message!\')')
-    User.newuser('admin','4dm1n!')
+    User.newuser('admin','4dm1n')

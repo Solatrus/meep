@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}meep: {{ topic.title }}{% endblock title %}
-{% block title2 %}meep: {{ topic.title }}{% endblock title2 %}
+{% block title %}meep: {{ topic.topic_name }}{% endblock title %}
+{% block title2 %}meep: {{ topic.topic_name }}{% endblock title2 %}
 
 {% block body %}
 
 
-<h1>{{ topic.title }}</h1>
+<h1>{{ topic.topic_name }}</h1>
 {% for item in messages %}
-    <p>id: {{ item.id }}</p>
-    <p>title: {{ item.title }}</p>
-    <p>message: {{ item.post }}</p>
-    <p>author: {{ item.author.username }}</p>
+    <p>id: {{ item.msg_id }}</p>
+    <p>title: {{ item.header }}</p>
+    <p>message: {{ item.msg_text }}</p>
+    <p>author: {{ item.username }}</p>
     <hr>
 {% endfor %}
  
 <form action='../add_message_topic_action' name='add_message' method='POST'>
     Title: <input type='text' name='title'><br>
     Message:<input type='text' name='message'><br>
-    <input type='number' hidden='true' name='topicid' value='{{ topic.id }}'><input type='submit'>
+    <input type='number' hidden='true' name='topicid' value='{{ topic.topic_id }}'><input type='submit'>
 </form>
 <form action='../delete_topic_action' name='delete_topic' method='POST'>
-    <input type='number' hidden='true' name='tid' value='{{ topic.id }}'>
+    <input type='number' hidden='true' name='tid' value='{{ topic.topic_id }}'>
     <input type='submit' value='Delete topic'>
 </form>
 

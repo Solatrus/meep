@@ -38,7 +38,7 @@ class MeepExampleApp(object):
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
         
-        return [ render_page('login.html', invalid='false') ]
+        return [ render_page('login.html', invalid='false', username=None) ]
 
     def do_login(self, environ, start_response):
         #print environ['wsgi.input']
@@ -186,6 +186,11 @@ class MeepExampleApp(object):
             #print message
             
         headers = [('Content-type', 'text/html')]
+            
+        if topic.topic_id == -1:
+            start_response("404 not found", headers)
+            return [ render_page('404.html') ]
+            
         start_response("200 OK", headers)
         
         return [ render_page('view_topic.html', messages=topic.messages, topic=topic, username=username) ]
@@ -230,7 +235,7 @@ class MeepExampleApp(object):
             
         #user = meeplib.User(username)
         
-        new_topic = meeplib.Topic(title, username, msgtitle, message)
+        new_topic = meeplib.Topic.newtopic(title, username, msgtitle, message)
         #new_topic = meeplib.Topic(title, new_message, username)
 
         headers = [('Content-type', 'text/html')]
@@ -335,10 +340,11 @@ class MeepExampleApp(object):
         return [ render_page('reply.html', message=m, topic_id=topic_id, username=username) ]
 		
     def add_message_topic_action(self, environ, start_response):
+        print "Welp."
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
         topicId = form['topicid'].value
-        topic = meeplib.get_topic(int(topicId))
+        topic = meeplib.Topic(int(topicId))
         
         title = form['title'].value
         message = form['message'].value
@@ -358,7 +364,7 @@ class MeepExampleApp(object):
             print "Message added to topic" + topicId
             
             headers = [('Content-type', 'text/html')]
-            headers.append(('Location', '/m/topics/view?id=%d' % (topic.id)))
+            headers.append(('Location', '/m/topics/view?id=%d' % (topic.topic_id)))
             start_response("302 Found", headers)
             return ["message added to topic"]
         else:
@@ -393,10 +399,10 @@ class MeepExampleApp(object):
                       '/m/list_topics': self.list_topics,
                       '/m/topics/view': self.view_topic,
                       #'/m/add': self.add_message,
-                      '/m/add_action': self.add_message_action,
+                      #'/m/add_action': self.add_message_action,
                       #'/m/delete_message': self.delete_message,
                       '/m/delete_message_topic': self.delete_message_topic,
-                      '/m/reply': self.reply,
+                      #'/m/reply': self.reply,
                       '/m/reply_topic': self.reply_topic,
                       '/m/add_message_topic_action': self.add_message_topic_action,
                       '/m/add_topic': self.add_topic,
@@ -450,7 +456,7 @@ class MimeServe(object):
             fp = open(os.getcwd() + self.filename, mode="r")
         except IOError:
             start_response("404 not found", [('Content-type', 'text/html'),])
-            return ["File not found"]
+            return [ render_page('404.html') ]
 
         data = fp.read()
         headers = [('Content-type', self.content_type),]
