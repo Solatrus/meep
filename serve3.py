@@ -14,12 +14,13 @@ if __name__ == '__main__':
         sock = socket.socket()
         sock.bind( (interface, port) )
         sock.listen(5)
+        print "Server ready..."
 
         while 1:
-            print 'Waiting for HTTP Request...'
+            #print 'Waiting for HTTP Request...'
             (client_sock, client_address) = sock.accept()
-            print 'Got connection', client_address
+            #print 'Got connection', client_address
             t = threading.Thread(target=ResponseBuilder.handle_connection, args=(client_sock,))
 
-            print 'Starting thread...'
+            #print 'Starting thread...'
             t.start()

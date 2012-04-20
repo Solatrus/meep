@@ -26,13 +26,16 @@ class Message(object):
         self.msg_text = row[4]
         
     @classmethod
-    def newmessage(self, topic_id, msg_header, msg_text, username):
+    def newmessage(self, topic_id, username, msg_header, msg_text):
+        #print """INSERT INTO messages (topic_id, username, header, msg_text)
+        #             VALUES ( %s, %s, %s, %s )""", (topic_id, username, msg_header, msg_text,)
         c.execute("""INSERT INTO messages (topic_id, username, header, msg_text)
                      VALUES ( %s, %s, %s, %s )""", (topic_id, username, msg_header, msg_text,))
         
     def delete_message(self):
 
         c.execute('DELETE FROM messages WHERE topic_id = %s AND msg_id = %s', (self.topic_id, self.msg_id,))
+        
 class Topic(object):
     def __init__(self, topic_id):
         c.execute('SELECT * FROM messages WHERE (topic_id = %s)', (topic_id,))
@@ -55,13 +58,6 @@ class Topic(object):
             self.topic_id = -1
         
     @classmethod
-    def settopic(self, topic_id, topic_name):
-        self.topic_id = topic_id
-        self.topic_name = topic_name
-        
-        return self
-        
-    @classmethod
     def newtopic(self, topic_name, username, msg_header, msg_text):
         c.execute('INSERT INTO topics (topic_name) VALUES ( %s )', (topic_name,))
         c.execute('SELECT * FROM topics ORDER BY topic_id DESC LIMIT 1')
@@ -70,8 +66,8 @@ class Topic(object):
         
         row = c.fetchone()
         
-        self.messages.append(Message.newmessage(row[0], msg_header, msg_text, username))
-        self.topic_id = row[0]        
+        self.messages.append(Message.newmessage(row[0],  username, msg_header, msg_text))
+        self.topic_id = int(row[0])
         self.topic_name = topic_name
         
         return self
@@ -84,12 +80,16 @@ class Topic(object):
 def get_all_topics():
     topics = []
     
-    c.execute('SELECT * FROM topics')
+    c.execute('SELECT topic_id FROM topics')
     
     for row in c:
         print row
-        topics.append(Topic.settopic(row[0],row[1]))
-    
+        topic = Topic(int(row[0]))
+        topics.append(topic)
+        
+    for topic in topics:
+        print topic.topic_id, topic.topic_name
+        
     return topics
         
 class User(object):
@@ -126,8 +126,8 @@ def initialize():
     c.execute('DROP TABLE messages')
     c.execute('DROP TABLE topics')
     c.execute('DROP TABLE users')
-    c.execute('CREATE TABLE messages (msg_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_id INTEGER, username VARCHAR(16), header TINYTEXT, msg_text TEXT)')
+    c.execute('CREATE TABLE messages (msg_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_id INTEGER, username VARCHAR(32), header TINYTEXT, msg_text TEXT)')
     c.execute('CREATE TABLE topics (topic_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_name TEXT)')
-    c.execute('CREATE TABLE users (username VARCHAR(16), password VARCHAR(40))')
+    c.execute('CREATE TABLE users (username VARCHAR(32), password VARCHAR(50))')
     Topic.newtopic("My First Topic", "admin", "my title", "This is my message!")
     User.newuser('admin','4dm1n')

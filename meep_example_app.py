@@ -3,6 +3,7 @@ import traceback
 import cgi
 import meepcookie
 import os
+import urlparse
 from time import sleep
 
 from jinja2 import Environment, FileSystemLoader
@@ -47,6 +48,8 @@ class MeepExampleApp(object):
         try:
             username = form['username'].value
             password = form['password'].value
+            password = password.replace('+', '%20')
+            password = urlparse.unquote(password)
         except:
             password = None
             
@@ -138,7 +141,7 @@ class MeepExampleApp(object):
         
         try:
             username = form['username'].value
-            password = form['password'].value
+            password = urlparse.unquote(form['password'].value)
             user = meeplib.User.newuser(username, password)
         except:
             pass
@@ -220,8 +223,14 @@ class MeepExampleApp(object):
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
         title = form['title'].value
+        title = title.replace('+', '%20')
+        title = urlparse.unquote(title)
         msgtitle = form['msgtitle'].value
+        msgtitle = msgtitle.replace('+', '%20')
+        msgtitle = urlparse.unquote(msgtitle)
         message = form['message'].value
+        message = message.replace('+', '%20')
+        message = urlparse.unquote(message)
         
         cookie = environ.get('HTTP_COOKIE', '')
         username = meepcookie.load_username(cookie)
@@ -331,7 +340,7 @@ class MeepExampleApp(object):
         id = int(form['id'].value)
         topic_id = int(form['topic_id'].value)
         
-        m = meeplib.get_message(topic_id, id)
+        m = meeplib.Message.get_message(topic_id, id)
         
         headers = [('Content-type', 'text/html')]
         
@@ -340,14 +349,18 @@ class MeepExampleApp(object):
         return [ render_page('reply.html', message=m, topic_id=topic_id, username=username) ]
 		
     def add_message_topic_action(self, environ, start_response):
-        print "Welp."
+        #print "Welp."
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
         topicId = form['topicid'].value
         topic = meeplib.Topic(int(topicId))
         
         title = form['title'].value
+        title = title.replace('+', '%20')
+        title = urlparse.unquote(title)
         message = form['message'].value
+        message = message.replace('+', '%20')
+        message = urlparse.unquote(message)
         
         cookie = environ.get('HTTP_COOKIE', '')
 
