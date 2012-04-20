@@ -109,7 +109,7 @@ class User(object):
         
 def get_all_users():
     users = []
-    c.execute('SELECT username from USERS')
+    c.execute('SELECT username FROM users')
     
     for row in c:
         users.append(row[0])

@@ -89,6 +89,9 @@ class TestApp(unittest.TestCase):
         
     def test_delete_topic(self):
         self.twill("delete_topic")
+        
+    def test_list_users(self):
+        self.twill("list_users")
 
     def tearDown(self):
         pass

@@ -1,0 +1,12 @@
+go http://localhost:8080/
+follow "Log in"
+
+fv 1 username 'admin'
+fv 1 password '4dm1n'
+submit
+
+url /
+find 'Log out'
+
+follow "Topics"
+find "First Topic"
