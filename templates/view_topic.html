@@ -12,6 +12,13 @@
     <p>title: {{ item.header }}</p>
     <p>message: {{ item.msg_text }}</p>
     <p>author: {{ item.username }}</p>
+    {% if username == item.username %}
+    <form action='../delete_message_topic' name='delete_message_{{ item.msg_id }}' method='POST'>
+        <input type='number' hidden='true' name='id' value='{{ item.msg_id }}'>
+        <input type='number' hidden='true' name='topic_id' value='{{ topic.topic_id }}'>
+        <input type='submit' value='Delete message'>
+    </form>
+    {% endif %}
     <hr>
 {% endfor %}
  

@@ -2,7 +2,7 @@ go http://localhost:8080/
 follow "Log in"
 
 fv 1 username 'admin'
-fv 1 password 'admin'
+fv 1 password '4dm1n'
 submit
 
 url /
@@ -15,4 +15,4 @@ fv 'add_message' message 'Blah blah blah'
 
 submit
 
-url /m/topics/view
+url /m/topics/view?id=1

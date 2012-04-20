@@ -219,7 +219,7 @@ class MeepExampleApp(object):
         return [ render_page('add_topic.html', username=username) ]
         
     def add_topic_action(self, environ, start_response):
-        print environ['wsgi.input']
+        #print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
         title = form['title'].value
@@ -300,15 +300,15 @@ class MeepExampleApp(object):
         return ["message deleted"]"""
         
     def delete_message_topic(self, environ, start_response):
-        print environ['wsgi.input']
+        #print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         
         topic_id = int(form['topic_id'].value)
         msg_id = int(form['id'].value)
         
-        topic = meeplib.Topic(topic_id)
+        #topic = meeplib.Topic(topic_id)
         
-        topic.delete_message(msg_id)
+        meeplib.Message.delete_message(topic_id, msg_id)
         
         headers = [('Content-type', 'text/html')]
         headers.append(('Location', '/m/topics/view?id=%d' % (topic_id,)))
@@ -334,7 +334,7 @@ class MeepExampleApp(object):
         cookie = environ.get('HTTP_COOKIE', '')
 
         username = meepcookie.load_username(cookie)
-        print environ['wsgi.input']
+        #print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         
         id = int(form['id'].value)
@@ -365,7 +365,7 @@ class MeepExampleApp(object):
         cookie = environ.get('HTTP_COOKIE', '')
 
         username = meepcookie.load_username(cookie)
-        print username
+        #print username
         #user = meeplib.get_user(username)
         #print user
         
@@ -374,7 +374,7 @@ class MeepExampleApp(object):
             #new_message = meeplib.Message(title, message, username)
             
             meeplib.Message.newmessage(topic.topic_id, username, title, message)
-            print "Message added to topic" + topicId
+            #print "Message added to topic" + topicId
             
             headers = [('Content-type', 'text/html')]
             headers.append(('Location', '/m/topics/view?id=%d' % (topic.topic_id)))
@@ -437,7 +437,7 @@ class MeepExampleApp(object):
             return fn(environ, start_response)
         except:
             tb = traceback.format_exc()
-            print tb
+            #print tb
             x = "<h1>Error!</h1><pre>%s</pre>" % (tb,)
 
             status = '500 Internal Server Error'

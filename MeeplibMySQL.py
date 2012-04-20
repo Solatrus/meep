@@ -9,7 +9,7 @@ class Message(object):
     def __init__(self, msg_id, topic_id, username, header, msg_text):
         self.msg_id = msg_id
         self.topic_id = topic_id
-        self.user = username
+        self.username = username
         self.header = header
         self.msg_text = msg_text
         
@@ -21,9 +21,11 @@ class Message(object):
         
         self.msg_id = msg_id
         self.topic_id = topic_id
-        self.user = row[2]
+        self.username = row[2]
         self.header = row[3]
         self.msg_text = row[4]
+        
+        return self
         
     @classmethod
     def newmessage(self, topic_id, username, msg_header, msg_text):
@@ -31,10 +33,10 @@ class Message(object):
         #             VALUES ( %s, %s, %s, %s )""", (topic_id, username, msg_header, msg_text,)
         c.execute("""INSERT INTO messages (topic_id, username, header, msg_text)
                      VALUES ( %s, %s, %s, %s )""", (topic_id, username, msg_header, msg_text,))
-        
-    def delete_message(self):
-
-        c.execute('DELETE FROM messages WHERE topic_id = %s AND msg_id = %s', (self.topic_id, self.msg_id,))
+    
+    @classmethod    
+    def delete_message(self, topic_id, msg_id):
+        c.execute('DELETE FROM messages WHERE topic_id = %s AND msg_id = %s', (topic_id, msg_id,))
         
 class Topic(object):
     def __init__(self, topic_id):
@@ -83,12 +85,8 @@ def get_all_topics():
     c.execute('SELECT topic_id FROM topics')
     
     for row in c:
-        print row
         topic = Topic(int(row[0]))
         topics.append(topic)
-        
-    for topic in topics:
-        print topic.topic_id, topic.topic_name
         
     return topics
         
@@ -100,12 +98,8 @@ class User(object):
             row = c.fetchone()
         except:
             self.validlogin = False
-            
-        print password
-        print row[0]
-        
+         
         isvalid = password == row[0]
-        print isvalid
         
         self.validlogin = isvalid
         
