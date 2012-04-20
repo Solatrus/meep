@@ -107,6 +107,11 @@ class User(object):
     def newuser(self, username, password):
         c.execute('INSERT INTO users (username, password) VALUES ( %s, AES_ENCRYPT(%s, %s) )', (username, password, encryptionkey,))
         
+    @classmethod
+    def deleteuser(self, username):
+        if (username != 'admin'):
+            c.execute('DELETE FROM users WHERE username = %s', (username,))    
+        
 def get_all_users():
     users = []
     c.execute('SELECT username FROM users')

@@ -3,11 +3,31 @@
 {% block title %}meep: Userlist{% endblock title %}
 {% block title2 %}meep: Userlist{% endblock title2 %}
 
+{% block head %}
+    <script type="text/javascript">
+        function doSubmit(user)
+        {
+            var form = document.createElement("form");
+            form.action = "/delete_user";
+            form.method = "POST";
+            form.name = "delete_user_" + user;
+            var field = document.createElement("input");
+            field.form = "delete_user_" + user;
+            field.value = user;
+            field.type = "hidden";
+            field.name = "username";
+            form.appendChild(field);
+            
+            form.submit();
+        };
+    </script>
+{% endblock head %}
+
 {% block body %}
 
 <ul>
  {% for user in users %}
-    <li>{{ user }}</li>
+    <li>{{ user }}{% if username != user %} - <a href="#" onclick="doSubmit('{{ user }}');">Delete</a></li>{% endif %}
  {% endfor %}
 <ul>
  

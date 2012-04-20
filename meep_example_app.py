@@ -152,6 +152,23 @@ class MeepExampleApp(object):
         
         return ["user added"]
         
+    def delete_user(self, environ, start_response):
+        form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
+        
+        try:
+            username = form['username'].value
+        except:
+            pass
+            
+        meeplib.User.deleteuser(username)
+            
+        headers = [('Content-type', 'text/html')]
+        headers.append(('Location', '/list_users'))
+        start_response('302 Found', headers)
+        
+        return ["user added"]
+            
+        
     def list_users(self, environ, start_response):
         users = meeplib.get_all_users()
         
@@ -159,11 +176,21 @@ class MeepExampleApp(object):
 
         username = meepcookie.load_username(cookie)
         
-        headers = [('Content-type', 'text/html')]
-        start_response("200 OK", headers)
-        
-        return [ render_page('list_users.html', users=users, username=username) ]
-
+        if (username == "admin"):
+            headers = [('Content-type', 'text/html')]
+            start_response("200 OK", headers)
+            return [ render_page('list_users.html', users=users, username=username) ]
+        elif (username != ""):
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/'))
+            start_response("302 Found", headers)
+            return ["Not admin"]
+        else:
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/login'))
+            start_response("302 Found", headers)
+            return ["Not logged in"]
+            
     def list_topics(self, environ, start_response):
         topics = meeplib.get_all_topics()
         
@@ -404,6 +431,7 @@ class MeepExampleApp(object):
         call_dict = { '/': self.index,
                       '/add_user': self.add_user,
                       '/add_user_action': self.add_user_action,
+                      '/delete_user': self.delete_user,
                       '/list_users': self.list_users,
                       '/login': self.login,
                       '/do_login': self.do_login,
