@@ -117,9 +117,10 @@ def get_all_users():
     return users
     
 def initialize():
-    c.execute('DROP TABLE messages')
-    c.execute('DROP TABLE topics')
-    c.execute('DROP TABLE users')
+    try:
+        c.execute('DROP TABLE messages')
+        c.execute('DROP TABLE topics')
+        c.execute('DROP TABLE users')
     c.execute('CREATE TABLE messages (msg_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_id INTEGER, username VARCHAR(32), header TINYTEXT, msg_text TEXT)')
     c.execute('CREATE TABLE topics (topic_id INTEGER PRIMARY KEY AUTO_INCREMENT, topic_name TEXT)')
     c.execute('CREATE TABLE users (username VARCHAR(32), password VARCHAR(50))')
