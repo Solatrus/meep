@@ -17,20 +17,20 @@ def make_set_cookie_header(name, value, path='/'):
     (key, value) = s.split(': ')
     return (key, value)
     
-def load_username(cookie):
+def get_session(cookie):
     c = SimpleCookie()
     c.load(cookie)
     
     try:
-        return c["username"].value
+        return c["session"].value
     except:
         return ""
     
-def clear_username(cookie):
+def clear_session(cookie):
     c = SimpleCookie()
     c.load(cookie)
     expires = datetime.datetime(2000, 2, 14, 18, 30, 14) + datetime.timedelta(hours=1)
-    c['username']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')
+    c['session']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')
     
     s = c.output()
     (key, value) = s.split(': ')

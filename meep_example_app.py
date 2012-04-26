@@ -20,16 +20,23 @@ def render_page(filename, **variables):
     template = env.get_template(filename)
     x = template.render(**variables)
     return str(x)
+    
+def check_cookie(cookie):
+    session = meepcookie.get_session(cookie)  
+    #print session
+    return meeplib.get_user_from_session(session)
+    
+def clear_session(cookie):
+    session = meepcookie.get_session(cookie)      
+    meeplib.delete_session(session)
+    return meepcookie.clear_session(cookie)
 
 class MeepExampleApp(object):
     """
     WSGI app object.
     """
     def index(self, environ, start_response):
-    
-        cookie = environ.get('HTTP_COOKIE', '')
-
-        username = meepcookie.load_username(cookie)
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
                 
         start_response("200 OK", [('Content-type', 'text/html')])
         
@@ -86,7 +93,9 @@ class MeepExampleApp(object):
             
             return [ render_page('login.html', invalid='true') ]
         else:
-            cookie_name, cookie_val = meepcookie.make_set_cookie_header('username',username)
+            session = meeplib.create_session(username)
+            
+            cookie_name, cookie_val = meepcookie.make_set_cookie_header('session',session)
             
             v = '/'
             
@@ -100,10 +109,9 @@ class MeepExampleApp(object):
 
 
     def logout(self, environ, start_response):
-        # does nothing
         cookie = environ.get('HTTP_COOKIE', '')
 
-        cookie_name, cookie_val = meepcookie.clear_username(cookie)
+        cookie_name, cookie_val = clear_session(cookie)
         
         headers = [('Content-type', 'text/html')]
         headers.append((cookie_name, cookie_val))
@@ -117,10 +125,7 @@ class MeepExampleApp(object):
         return [ "Log out" ] 
         
     def add_user(self, environ, start_response):
-        cookie = environ.get('HTTP_COOKIE')
-        
-        username = meepcookie.load_username(cookie)
-
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         
         headers = [('Content-type', 'text/html')]
         if username == 'admin':
@@ -137,20 +142,24 @@ class MeepExampleApp(object):
                 
     def add_user_action(self, environ, start_response):
         #print environ['wsgi.input']
+        curruser = check_cookie(environ.get('HTTP_COOKIE', ''))
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ,keep_blank_values=True)
         
-        try:
-            username = form['username'].value
-            password = urlparse.unquote(form['password'].value)
-            user = meeplib.User.newuser(username, password)
-        except:
-            pass
+        if curruser == 'admin':
+            try:
+                username = form['username'].value
+                password = urlparse.unquote(form['password'].value)
+                user = meeplib.User.newuser(username, password)
+            except: 
+                pass
             
-        headers = [('Content-type', 'text/html')]
-        headers.append(('Location', '/'))
-        start_response('302 Found', headers)
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/'))
+            start_response('302 Found', headers)
         
-        return ["user added"]
+            return ["user added"]
+        else:
+            redre
         
     def delete_user(self, environ, start_response):
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
@@ -166,17 +175,13 @@ class MeepExampleApp(object):
         headers.append(('Location', '/list_users'))
         start_response('302 Found', headers)
         
-        return ["user added"]
-            
+        return ["user added"]  
         
-    def list_users(self, environ, start_response):
-        users = meeplib.get_all_users()
-        
-        cookie = environ.get('HTTP_COOKIE', '')
-
-        username = meepcookie.load_username(cookie)
+    def list_users(self, environ, start_response):        
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         
         if (username == "admin"):
+            users = meeplib.get_all_users()
             headers = [('Content-type', 'text/html')]
             start_response("200 OK", headers)
             return [ render_page('list_users.html', users=users, username=username) ]
@@ -194,9 +199,7 @@ class MeepExampleApp(object):
     def list_topics(self, environ, start_response):
         topics = meeplib.get_all_topics()
         
-        cookie = environ.get('HTTP_COOKIE', '')
-
-        username = meepcookie.load_username(cookie)
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         
         headers = [('Content-type', 'text/html')]
         start_response("200 OK", headers)
@@ -204,9 +207,7 @@ class MeepExampleApp(object):
         return [ render_page('list_topics.html', topics=topics, username=username) ]
         
     def view_topic(self, environ, start_response):
-        cookie = environ.get('HTTP_COOKIE', '')
-
-        username = meepcookie.load_username(cookie)
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         qString = cgi.parse_qs(environ['QUERY_STRING'])
         tId = qString.get('id', [''])[0]
         #print tId
@@ -235,15 +236,20 @@ class MeepExampleApp(object):
         return [ render_page('list_messages.html', messages=messages) ]"""
         
     def add_topic(self, environ, start_response):
-        cookie = environ.get('HTTP_COOKIE', '')
-
-        username = meepcookie.load_username(cookie)
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         
-        headers = [('Content-type', 'text/html')]
+        if username != "":
         
-        start_response("200 OK", headers)
+            headers = [('Content-type', 'text/html')]
+            
+            start_response("200 OK", headers)
 
-        return [ render_page('add_topic.html', username=username) ]
+            return [ render_page('add_topic.html', username=username) ]
+        else:
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/login'))
+            start_response("302 Found", headers)
+            return ["session expired"]
         
     def add_topic_action(self, environ, start_response):
         #print environ['wsgi.input']
@@ -259,15 +265,14 @@ class MeepExampleApp(object):
         message = message.replace('+', '%20')
         message = urlparse.unquote(message)
         
-        cookie = environ.get('HTTP_COOKIE', '')
-        username = meepcookie.load_username(cookie)
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         
         if username == "":
             headers = [('Content-type', 'text/html')]
             headers.append(('Location', '/login'))
             start_response("302 Found", headers)
             
-            return ["session ended"]
+            return ["session expired"]
             
         #user = meeplib.User(username)
         
@@ -327,6 +332,7 @@ class MeepExampleApp(object):
         return ["message deleted"]"""
         
     def delete_message_topic(self, environ, start_response):
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         #print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         
@@ -335,12 +341,21 @@ class MeepExampleApp(object):
         
         #topic = meeplib.Topic(topic_id)
         
-        meeplib.Message.delete_message(topic_id, msg_id)
+        msg = Message(topic_id, msg_id)
         
-        headers = [('Content-type', 'text/html')]
-        headers.append(('Location', '/m/topics/view?id=%d' % (topic_id,)))
-        start_response("302 Found", headers)
-        return ["message deleted"]
+        if msg.username == username:
+        
+            meeplib.Message.delete_message(topic_id, msg_id)
+            
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/m/topics/view?id=%d' % (topic_id,)))
+            start_response("302 Found", headers)
+            return ["message deleted"]
+        else:
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/login'))
+            start_response("302 Found", headers)
+            return ["session expired"]
         
     """def reply(self, environ, start_response):
         print environ['wsgi.input']
@@ -358,9 +373,7 @@ class MeepExampleApp(object):
         return [ render_page('reply.html', message=m, topic_id=-1) ]"""
         
     def reply_topic(self, environ, start_response):
-        cookie = environ.get('HTTP_COOKIE', '')
-
-        username = meepcookie.load_username(cookie)
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         #print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         
@@ -369,11 +382,16 @@ class MeepExampleApp(object):
         
         m = meeplib.Message.get_message(topic_id, id)
         
-        headers = [('Content-type', 'text/html')]
+        if username != "":
         
-        start_response("200 OK", headers)
-
-        return [ render_page('reply.html', message=m, topic_id=topic_id, username=username) ]
+            headers = [('Content-type', 'text/html')]
+            start_response("200 OK", headers)
+            return [ render_page('reply.html', message=m, topic_id=topic_id, username=username) ]
+        else:
+            headers = [('Content-type', 'text/html')]
+            headers.append(('Location', '/login'))
+            start_response("302 Found", headers)
+            return ["session expired"]
 		
     def add_message_topic_action(self, environ, start_response):
         #print "Welp."
@@ -389,9 +407,7 @@ class MeepExampleApp(object):
         message = message.replace('+', '%20')
         message = urlparse.unquote(message)
         
-        cookie = environ.get('HTTP_COOKIE', '')
-
-        username = meepcookie.load_username(cookie)
+        username = check_cookie(environ.get('HTTP_COOKIE', ''))
         #print username
         #user = meeplib.get_user(username)
         #print user
@@ -414,7 +430,7 @@ class MeepExampleApp(object):
             return ["session expired"]
         
     def delete_topic_action(self, environ, start_response):
-        print environ['wsgi.input']
+        #print environ['wsgi.input']
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
         topicId = form['tid'].value
